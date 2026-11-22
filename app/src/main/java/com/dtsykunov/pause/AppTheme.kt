@@ -5,7 +5,7 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import com.google.android.material.color.MaterialColors
 
-/** The user-selectable palettes. Each has light and dark values (see res/values*/colors.xml). */
+/** The user-selectable palettes. Each has light and dark values (see the colors.xml files in res/values and res/values-night). */
 enum class AppTheme(val id: String, val labelRes: Int, val styleRes: Int) {
     TEAL("teal", R.string.theme_teal, R.style.Theme_Pause),
     LAVENDER("lavender", R.string.theme_lavender, R.style.Theme_Pause_Lavender),
