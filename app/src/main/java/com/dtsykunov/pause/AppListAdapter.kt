@@ -16,7 +16,8 @@ data class AppEntry(
 
 class AppListAdapter(
     private var items: List<AppEntry>,
-    private val onToggle: (AppEntry, Boolean) -> Unit,
+    /** Return false to veto the change (the switch snaps back). */
+    private val onToggle: (AppEntry, Boolean) -> Boolean,
 ) : RecyclerView.Adapter<AppListAdapter.VH>() {
 
     @SuppressLint("NotifyDataSetChanged")
@@ -39,9 +40,9 @@ class AppListAdapter(
         holder.binding.appSwitch.isChecked = item.blocked
         holder.binding.root.setOnClickListener {
             val newValue = !item.blocked
+            if (!onToggle(item, newValue)) return@setOnClickListener
             item.blocked = newValue
             holder.binding.appSwitch.isChecked = newValue
-            onToggle(item, newValue)
         }
     }
 

@@ -79,4 +79,27 @@
     <string name="reset_confirm_body">Clear all stats? This also resets the open counts shown on the pause screen. It can\'t be undone.</string>
     <string name="reset_confirm_yes">Reset</string>
     <string name="reset_confirm_cancel">Cancel</string>
+
+    <!-- Alternative apps, breathing styles, puzzle -->
+    <string name="section_alt_apps">Open instead</string>
+    <plurals name="alt_apps_count">
+        <item quantity="one">%d app offered on the pause screen</item>
+        <item quantity="other">%d apps offered on the pause screen</item>
+    </plurals>
+    <string name="alt_apps_limit">Up to %d apps</string>
+    <string name="overlay_instead">Or open instead</string>
+    <string name="section_breath_style">Breathing style</string>
+    <string name="breath_classic">Classic circle</string>
+    <string name="breath_box">Box breathing (4-4-4-4)</string>
+    <string name="breath_478">4-7-8 breathing</string>
+    <string name="breath_ripple">Ripples</string>
+    <string name="breath_still">Still circle</string>
+    <string name="phase_in">Breathe in</string>
+    <string name="phase_hold">Hold</string>
+    <string name="phase_out">Breathe out</string>
+    <string name="puzzle_option">Offer a puzzle while waiting</string>
+    <string name="overlay_puzzle">Puzzle</string>
+    <string name="overlay_back_to_breathing">Back to breathing</string>
+    <string name="puzzle_solved">Solved!</string>
+    <string name="puzzle_tap_new">Tap for a new one</string>
 </resources>

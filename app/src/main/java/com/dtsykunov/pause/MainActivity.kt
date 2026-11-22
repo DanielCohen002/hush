@@ -52,6 +52,33 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, AppsActivity::class.java))
         }
 
+        binding.altAppsRow.setOnClickListener {
+            startActivity(Intent(this, AppsActivity::class.java).putExtra(AppsActivity.EXTRA_ALT, true))
+        }
+
+        binding.breathStyleRow.setOnClickListener {
+            val styles = BreathStyle.values()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.section_breath_style)
+                .setSingleChoiceItems(
+                    styles.map { getString(it.labelRes) }.toTypedArray(),
+                    styles.indexOf(Prefs.breathStyle(this)),
+                ) { dialog, which ->
+                    Prefs.setBreathStyle(this, styles[which])
+                    binding.breathStyleValue.setText(styles[which].labelRes)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        binding.puzzleSwitch.isChecked = Prefs.puzzleEnabled(this)
+        binding.puzzleRow.setOnClickListener {
+            val on = !binding.puzzleSwitch.isChecked
+            binding.puzzleSwitch.isChecked = on
+            Prefs.setPuzzleEnabled(this, on)
+        }
+
         binding.lengthHelp.setOnClickListener {
             showHint(R.string.section_length, R.string.help_length_body)
         }
@@ -169,6 +196,10 @@ class MainActivity : AppCompatActivity() {
 
         val count = Prefs.blockedPackages(this).size
         binding.pausedAppsCount.text = resources.getQuantityString(R.plurals.paused_count, count, count)
+
+        val altCount = Prefs.altPackages(this).size
+        binding.altAppsCount.text = resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
+        binding.breathStyleValue.setText(Prefs.breathStyle(this).labelRes)
     }
 
     /** Tint a status card green when the thing it tracks is ready, rose when it needs attention. */

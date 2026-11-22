@@ -137,13 +137,13 @@ class AppMonitorService : AccessibilityService() {
 
         if (overlay?.isShowing == true) {
             // Pulling the notification shade down opens it *behind* our accessibility overlay,
-            // where it's unusable. The shade isn't a navigation, so just dropping the pause would
-            // leave the paused app in front once the shade closes. Treat the pull like Cancel:
-            // drop the pause and send the app to the background (no stats — a shade pull isn't a
-            // deliberate Cancel). GLOBAL_ACTION_HOME also collapses the shade.
+            // where it would be visible but unusable. So get the pause out of the way (invisible
+            // and untouchable) while the shade is open and bring it back once it closes. If the
+            // user taps a notification instead, that's a navigation to another app, which the
+            // checks below confirm and handle like any other leave.
             if (isShadeOpen()) {
-                dismissOverlay()
-                performGlobalAction(GLOBAL_ACTION_HOME)
+                overlay?.setHidden(true)
+                watchShade()
                 return
             }
             // A move to any real window other than the paused app (home, recents, another app)
@@ -422,6 +422,7 @@ class AppMonitorService : AccessibilityService() {
         val shownAt = SystemClock.elapsedRealtime()
         overlay = InterventionOverlay(
             service = this,
+            pausedPackage = pkg,
             appLabel = appLabel(pkg),
             attempts = attempts,
             lastOpenedAt = lastOpenedAt,
@@ -443,6 +444,21 @@ class AppMonitorService : AccessibilityService() {
                 recordBreathing(pkg, shownAt, seconds)
                 overlay = null
                 performGlobalAction(GLOBAL_ACTION_HOME)
+            },
+            // Choosing something better to do counts as a cancel: the paused app stays closed.
+            onOpenAlternative = { alt ->
+                Prefs.incCancels(this, pkg)
+                Prefs.recordCancel24h(this, pkg)
+                recordBreathing(pkg, shownAt, seconds)
+                overlay = null
+                currentApp = null
+                AltApps.launchIntent(this, alt)?.let {
+                    try {
+                        startActivity(it)
+                    } catch (_: Exception) {
+                        performGlobalAction(GLOBAL_ACTION_HOME)
+                    }
+                }
             }
         ).also { it.show() }
     }
@@ -475,6 +491,30 @@ class AppMonitorService : AccessibilityService() {
     private fun cancelPending() {
         pendingCheck?.let { handler.removeCallbacks(it) }
         pendingCheck = null
+    }
+
+    private val shadeWatch = object : Runnable {
+        override fun run() {
+            val o = overlay
+            if (o == null || !o.isShowing) return
+            if (isShadeOpen()) {
+                handler.postDelayed(this, 250)
+            } else {
+                o.setHidden(false)
+            }
+        }
+    }
+
+    /** Poll until the shade closes: closing it produces no event we can rely on. */
+    private fun watchShade() {
+        handler.removeCallbacks(shadeWatch)
+        handler.postDelayed(shadeWatch, 250)
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Portrait and landscape use different pause layouts.
+        overlay?.onConfigurationChanged()
     }
 
     /** Drop the pause immediately and stop any pending foreground check. */

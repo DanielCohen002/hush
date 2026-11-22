@@ -18,6 +18,9 @@ object Prefs {
     private const val KEY_ALLOW_MIN = "allow_minutes"
     private const val KEY_PAUSE_AGAIN = "pause_again"
     private const val KEY_STAT_PKGS = "stat_packages"
+    private const val KEY_BREATH_STYLE = "breath_style"
+    private const val KEY_ALT_PKGS = "alt_packages"
+    private const val KEY_PUZZLE = "puzzle_enabled"
     private const val STAT_INTERRUPTIONS = "si_"
     private const val STAT_OPENS = "so_"
     private const val STAT_CANCELS = "sc_"
@@ -127,6 +130,31 @@ object Prefs {
 
     fun setPauseAgainWhenAllowEnds(c: Context, on: Boolean) {
         sp(c).edit().putBoolean(KEY_PAUSE_AGAIN, on).apply()
+    }
+
+    /** Which breathing animation the pause screen uses; see [BreathStyle]. */
+    fun breathStyle(c: Context): BreathStyle =
+        BreathStyle.fromId(sp(c).getString(KEY_BREATH_STYLE, null))
+
+    fun setBreathStyle(c: Context, style: BreathStyle) {
+        sp(c).edit().putString(KEY_BREATH_STYLE, style.id).apply()
+    }
+
+    /** Whether the pause screen offers a small puzzle to do while waiting. */
+    fun puzzleEnabled(c: Context): Boolean = sp(c).getBoolean(KEY_PUZZLE, true)
+
+    fun setPuzzleEnabled(c: Context, on: Boolean) {
+        sp(c).edit().putBoolean(KEY_PUZZLE, on).apply()
+    }
+
+    /** Apps offered on the pause screen as something better to open instead. Until the user
+     *  edits the list this is the installed subset of [AltApps.SUGGESTED], so it works out of
+     *  the box; once edited, exactly what they chose (possibly nothing). */
+    fun altPackages(c: Context): Set<String> =
+        sp(c).getStringSet(KEY_ALT_PKGS, null)?.toSet() ?: AltApps.installedDefaults(c)
+
+    fun setAltPackages(c: Context, pkgs: Set<String>) {
+        sp(c).edit().putStringSet(KEY_ALT_PKGS, pkgs).apply()
     }
 
     /** When [pkg] was last actually opened (via "Open anyway"), or null if never. */

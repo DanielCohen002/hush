@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape: the visual sits on the left, text and buttons on the right, so nothing needs
+     scrolling on a short screen. Same ids as layout/overlay_intervention.xml. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_bg">
+
+        <ScrollView
+            android:id="@+id/scrollView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fadeScrollbars="false"
+            android:fillViewport="true"
+            android:scrollbars="vertical">
+
+            <LinearLayout
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingHorizontal="32dp"
+                android:paddingVertical="16dp">
+
+                <!-- Left: breathing visual / puzzle -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp">
+
+                        <FrameLayout
+                            android:id="@+id/breathFrame"
+                            android:layout_width="170dp"
+                            android:layout_height="170dp"
+                            android:layout_gravity="center">
+
+                            <com.dtsykunov.pause.BreathView
+                                android:id="@+id/breathCircle"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+
+                            <TextView
+                                android:id="@+id/countdownText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:fontFamily="sans-serif-thin"
+                                android:textColor="@color/overlay_countdown"
+                                android:textSize="60sp"
+                                tools:text="8" />
+                        </FrameLayout>
+
+                        <com.dtsykunov.pause.MiniSudokuView
+                            android:id="@+id/puzzleView"
+                            android:layout_width="230dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:visibility="gone" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/phaseText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:minHeight="28dp"
+                        android:textColor="@color/overlay_text"
+                        android:textSize="20sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/breatheText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:letterSpacing="0.03"
+                        android:text="@string/overlay_breathe"
+                        android:textColor="@color/overlay_text_dim"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <!-- Right: what and why, then the choices -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/openingText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:gravity="center"
+                        android:textColor="@color/overlay_text"
+                        android:textSize="22sp"
+                        tools:text="Opening Instagram" />
+
+                    <TextView
+                        android:id="@+id/attemptsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:textColor="@color/overlay_text_dim"
+                        android:textSize="14sp"
+                        tools:text="Last opened 10m ago, tried 5 times in the last 24h" />
+
+                    <LinearLayout
+                        android:id="@+id/buttonsRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/closeButton"
+                            android:layout_width="260dp"
+                            android:layout_height="wrap_content"
+                            android:minHeight="52dp"
+                            android:text="@string/overlay_close"
+                            android:textSize="16sp"
+                            app:cornerRadius="26dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/openButton"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:minHeight="48dp"
+                            android:text="@string/overlay_open"
+                            android:textColor="@color/overlay_text_dim"
+                            android:visibility="invisible" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/altSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/overlay_instead"
+                            android:textColor="@color/overlay_text_dim"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:id="@+id/altRow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/puzzleButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:minHeight="48dp"
+                        android:text="@string/overlay_puzzle"
+                        android:textColor="@color/overlay_text_dim"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</FrameLayout>
