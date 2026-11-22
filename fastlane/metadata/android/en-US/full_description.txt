@@ -9,7 +9,7 @@ Features:
 * Open count: see how many times you have opened that app in the last 24 hours.
 * Adjustable: set the pause length, a custom message, and whether the countdown is shown.
 * Local stats: per-app pauses, opens, and cancels, plus total time paused.
-* No network access: everything stays on your phone. No account, no analytics. The app cannot reach the internet.
+* Private: everything stays on your phone. No account, no analytics, no background networking. The only time it goes online is when you tap "Check for updates".
 
 How it works:
 
