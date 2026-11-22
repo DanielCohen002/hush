@@ -61,7 +61,7 @@
     <string name="overlay_attempts_many">Tried %1$d times in the last 24h</string>
     <string name="overlay_last_opened_one">Last opened %1$s ago, tried once in the last 24h</string>
     <string name="overlay_last_opened_many">Last opened %1$s ago, tried %2$d times in the last 24h</string>
-    <string name="overlay_breathe">Take a moment</string>
+    <string name="overlay_breathe">Take a breather</string>
     <string name="overlay_open">Open anyway</string>
     <string name="overlay_close">Cancel</string>
     <string name="overlay_still_using">Still in %1$s</string>

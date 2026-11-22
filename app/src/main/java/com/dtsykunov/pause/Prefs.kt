@@ -40,7 +40,7 @@ object Prefs {
     const val MODE_RANDOM = "random"
     const val DEFAULT_DURATION_MIN = 5
     const val DEFAULT_DURATION_MAX = 20
-    const val DEFAULT_PHRASE = "Take a moment"
+    const val DEFAULT_PHRASE = "Take a breather"
     const val DEFAULT_ALLOW_MIN = 15
     const val MIN_ALLOW_MIN = 1
     const val MAX_ALLOW_MIN = 60
