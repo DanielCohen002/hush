@@ -2,10 +2,18 @@
 
 # Hush
 
-A calm Android app that adds a short, timed pause before you open chosen apps. A fork of
-[Pause](https://github.com/dtsykunov/pause-app) by dtsykunov (MIT), with:
+A calm Android app that adds a short, timed pause before you open chosen apps.
 
-- a landscape layout and a pause screen you can still pull the notification shade over
+### [Download the latest signed APK](https://github.com/DanielCohen002/hush/releases/latest)
+
+Package name `com.djcohen.hush`. Needs Android 7.0 or newer.
+
+> **Hush is a fork of [Pause](https://github.com/dtsykunov/pause-app) by dtsykunov** (MIT licensed;
+> the original licence is kept in `LICENSE`). Thanks to the original author for the foundation.
+
+What Hush adds on top of Pause:
+
+- a landscape layout, and a pause screen you can still pull the notification shade over
 - apps of your choosing offered "instead" on the pause screen
 - breathing styles: classic, box, 4-7-8, ripples, still
 - three colour themes (Ember by default, Seafoam, and the original Lavender), light and dark
@@ -22,11 +30,6 @@ screen, so it needs no "draw over other apps" permission, and the app has no net
 > timers and Focus mode, and Android 17's Pause Point (a built-in delay before selected apps, on Pixel
 > and Samsung). If your phone has those, prefer them. Pause is for older devices, custom ROMs, and
 > phones that ship without Google's Digital Wellbeing.
-
-## Get the app
-
-Download the signed APK from [GitHub Releases](https://github.com/DanielCohen002/hush/releases/latest).
-Package name: `com.djcohen.hush`.
 
 ## Build
 
