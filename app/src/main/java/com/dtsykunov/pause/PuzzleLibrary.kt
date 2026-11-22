@@ -16,6 +16,24 @@ enum class PuzzleType(val id: String, val labelRes: Int) {
     }
 }
 
+/** How big puzzles are drawn. LARGE is the original size; SMALL (default) leaves more of the
+ *  pause screen showing. Each puzzle has its own small factor: the crossword needs room for
+ *  its keyboard, the word search and sudoku can shrink the most. */
+enum class PuzzleSize(val id: String, val labelRes: Int) {
+    SMALL("small", R.string.size_small),
+    LARGE("large", R.string.size_large);
+
+    fun factor(type: PuzzleType): Float = if (this == LARGE) 1f else when (type) {
+        PuzzleType.WORDSEARCH -> 0.62f
+        PuzzleType.SUDOKU -> 0.72f
+        else -> 0.85f
+    }
+
+    companion object {
+        fun fromId(id: String?): PuzzleSize = values().firstOrNull { it.id == id } ?: SMALL
+    }
+}
+
 /**
  * Puzzles come from packs bundled in assets/puzzles/ (built by tools/gen_puzzles.py), not
  * generated on the phone. Each pack is read once, and the next puzzle is just the next index in

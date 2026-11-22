@@ -89,6 +89,22 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        binding.puzzleSizeRow.setOnClickListener {
+            val sizes = PuzzleSize.values()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.section_puzzle_size)
+                .setSingleChoiceItems(
+                    sizes.map { getString(it.labelRes) }.toTypedArray(),
+                    sizes.indexOf(Prefs.puzzleSize(this)),
+                ) { dialog, which ->
+                    Prefs.setPuzzleSize(this, sizes[which])
+                    binding.puzzleSizeValue.setText(sizes[which].labelRes)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
         binding.themeRow.setOnClickListener {
             val themes = AppTheme.values()
             MaterialAlertDialogBuilder(this)
@@ -237,6 +253,7 @@ class MainActivity : AppCompatActivity() {
             if (altCount == 0) getString(R.string.alt_apps_none)
             else resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
         binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
+        binding.puzzleSizeValue.setText(Prefs.puzzleSize(this).labelRes)
         binding.themeValue.setText(Prefs.theme(this).labelRes)
         binding.breathStyleValue.setText(Prefs.breathStyle(this).labelRes)
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -23,6 +24,7 @@ class MiniSudokuView @JvmOverloads constructor(
     private var cells = IntArray(n * n)
     private var selected = -1
     private var solved = false
+    private var solvedAt = 0L
     private var onSolved: (() -> Unit)? = null
 
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
@@ -43,6 +45,7 @@ class MiniSudokuView @JvmOverloads constructor(
         cells = given.copyOf()
         selected = -1
         solved = false
+        solvedAt = 0L
         this.onSolved = onSolved
         invalidate()
     }
@@ -114,16 +117,19 @@ class MiniSudokuView @JvmOverloads constructor(
         }
 
         if (solved) {
-            fill.color = (bg and 0x00FFFFFF) or 0xE6000000.toInt()
+            if (solvedAt == 0L) solvedAt = SystemClock.uptimeMillis()
+            val a = ((SystemClock.uptimeMillis() - solvedAt) / 350f).coerceIn(0f, 1f)
+            fill.color = (bg and 0x00FFFFFF) or ((0xE6 * a).toInt() shl 24)
             canvas.drawRect(0f, 0f, w, w, fill)
-            text.color = accent
+            text.color = (accent and 0x00FFFFFF) or ((255 * a).toInt() shl 24)
             text.typeface = Typeface.DEFAULT_BOLD
             text.textSize = s * 0.6f
             canvas.drawText(context.getString(R.string.puzzle_solved), w / 2f, baseline(w / 2f), text)
-            text.color = dim
+            text.color = (dim and 0x00FFFFFF) or ((255 * a).toInt() shl 24)
             text.typeface = Typeface.DEFAULT
             text.textSize = s * 0.3f
             canvas.drawText(context.getString(R.string.puzzle_tap_new), w / 2f, baseline(w / 2f + s * 0.6f), text)
+            if (a < 1f) postInvalidateOnAnimation()
         }
     }
 

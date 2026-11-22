@@ -23,6 +23,7 @@ object Prefs {
     private const val KEY_PUZZLE = "puzzle_enabled"
     private const val KEY_PUZZLE_TYPE = "puzzle_type"
     private const val KEY_THEME = "app_theme"
+    private const val KEY_PUZZLE_SIZE = "puzzle_size"
     private const val KEY_PUZZLE_IDX = "puzzle_idx_"
     private const val STAT_INTERRUPTIONS = "si_"
     private const val STAT_OPENS = "so_"
@@ -157,6 +158,12 @@ object Prefs {
 
     fun setAltPackages(c: Context, pkgs: Set<String>) {
         sp(c).edit().putStringSet(KEY_ALT_PKGS, pkgs).apply()
+    }
+
+    fun puzzleSize(c: Context): PuzzleSize = PuzzleSize.fromId(sp(c).getString(KEY_PUZZLE_SIZE, null))
+
+    fun setPuzzleSize(c: Context, size: PuzzleSize) {
+        sp(c).edit().putString(KEY_PUZZLE_SIZE, size.id).apply()
     }
 
     fun theme(c: Context): AppTheme = AppTheme.fromId(sp(c).getString(KEY_THEME, null))

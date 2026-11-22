@@ -62,14 +62,27 @@ class InterventionOverlay(
     // The puzzle in play. Chosen the first time it's shown, so opening the pause screen without
     // touching the puzzle doesn't use one up; kept across rotations.
     private var puzzle: Any? = null
+    private var puzzleBaseWidth = 0
 
     private fun showPuzzle() {
         val p = puzzle ?: PuzzleLibrary.next(service, PuzzleLibrary.concrete(Prefs.puzzleType(service)))
             .also { puzzle = it }
+        val type = when (p) {
+            is PuzzleLibrary.Sudoku -> PuzzleType.SUDOKU
+            is PuzzleLibrary.WordSearch -> PuzzleType.WORDSEARCH
+            else -> PuzzleType.CROSSWORD
+        }
+        // The layout's width is the large size for this orientation; scale it for the setting.
+        val lp = binding.puzzleView.layoutParams
+        if (puzzleBaseWidth == 0) puzzleBaseWidth = lp.width
+        lp.width = (puzzleBaseWidth * Prefs.puzzleSize(service).factor(type)).toInt()
+        binding.puzzleView.layoutParams = lp
         binding.puzzleView.show(p) {
             puzzle = null
             showPuzzle()
         }
+        binding.puzzleView.alpha = 0f
+        binding.puzzleView.animate().alpha(1f).setDuration(220).start()
     }
 
     fun show() {
@@ -97,6 +110,7 @@ class InterventionOverlay(
     /** Build the view for the current orientation, bind it, and add it to the window. */
     private fun inflateAndAttach() {
         binding = OverlayInterventionBinding.inflate(LayoutInflater.from(themedContext))
+        puzzleBaseWidth = 0 // the other orientation's layout has its own base width
         bindTexts()
         bindAlternatives()
 
