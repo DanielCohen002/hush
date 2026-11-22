@@ -1,6 +1,8 @@
-<img src="docs/logo.png" alt="Hush logo" width="96" align="right">
+<p align="center">
+  <img src="docs/logo.png" alt="Hush logo" width="128" height="128">
+</p>
 
-# Hush
+<h1 align="center">Hush</h1>
 
 A calm Android app that adds a short, timed pause before you open chosen apps.
 
