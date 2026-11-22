@@ -2,8 +2,6 @@ name: Debug build
 
 # Compiles the app and uploads an installable debug APK as a workflow artifact.
 on:
-  push:
-    branches: [my-changes]
   workflow_dispatch:
 
 jobs:
