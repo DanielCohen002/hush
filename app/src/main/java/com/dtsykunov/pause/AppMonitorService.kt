@@ -58,6 +58,15 @@ class AppMonitorService : AccessibilityService() {
      *  front and stops. Nothing needs cancelling on navigation, lock, or app switch. */
     private var expiryRunnable: Runnable? = null
 
+    /** When the current pause appeared (elapsedRealtime); launcher events right after this are
+     *  the paused app's own launch animation, not the user leaving. */
+    private var overlayShownAt = 0L
+
+    /** The app whose pause was just dismissed because the user left, and when. Its window can
+     *  still be animating out for a moment, and must not be mistaken for a fresh open. */
+    private var justLeftPackage: String? = null
+    private var justLeftAt = 0L
+
     private val handler = Handler(Looper.getMainLooper())
     private var pendingCheck: Runnable? = null
     private val settleDelayMs = 250L
@@ -158,7 +167,12 @@ class AppMonitorService : AccessibilityService() {
                 // already agrees the user left, dismiss on the spot. Gated to the launcher
                 // because short-lived trampoline/dialog windows are also momentarily topmost
                 // right when their event fires — but nothing trampolines through home.
-                if (pkg in launcherPackages() && navigatedAway()) {
+                // Past the launch animation window (see [overlayShownAt]) a launcher event is
+                // the user going home or to recents: drop the pause at once rather than waiting
+                // for the stack to settle, which left it visibly covering the recents view.
+                if (pkg in launcherPackages() &&
+                    (navigatedAway() || SystemClock.elapsedRealtime() - overlayShownAt > 900)
+                ) {
                     dismissOverlay()
                     return
                 }
@@ -199,6 +213,14 @@ class AppMonitorService : AccessibilityService() {
             // noticed once the user is really back (ACTION_SCREEN_ON re-runs this check too).
             // isBlocked guards it because this sits above the blocked check below.
             if (Prefs.isBlocked(this, active)) armExpiryCheck(active)
+            return
+        }
+
+        // Just dismissed because the user left: the paused app can still read as foreground for
+        // a moment while it animates away. Re-check once that has settled instead of showing
+        // the pause again over the home screen.
+        if (active == justLeftPackage && SystemClock.elapsedRealtime() - justLeftAt < 1200) {
+            postDelayedCheck(1300) { evaluateForeground() }
             return
         }
 
@@ -420,6 +442,7 @@ class AppMonitorService : AccessibilityService() {
         // No expiry check should run underneath a pause that's already up.
         cancelExpiryCheck()
         val shownAt = SystemClock.elapsedRealtime()
+        overlayShownAt = shownAt
         overlay = InterventionOverlay(
             service = this,
             pausedPackage = pkg,
@@ -520,7 +543,9 @@ class AppMonitorService : AccessibilityService() {
     /** Drop the pause immediately and stop any pending foreground check. */
     private fun dismissOverlay() {
         cancelPending()
-        overlay?.dismissNow()
+        justLeftPackage = currentApp
+        justLeftAt = SystemClock.elapsedRealtime()
+        overlay?.dismissFade()
         overlay = null
         currentApp = null
     }

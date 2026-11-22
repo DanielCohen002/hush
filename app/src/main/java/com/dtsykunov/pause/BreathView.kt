@@ -99,21 +99,35 @@ class BreathView @JvmOverloads constructor(
         }
     }
 
+    /** Raw (linear) fraction 0..1 through the current phase, for progress indicators. */
+    private fun phaseFraction(): Float {
+        var start = 0L
+        for (p in style.phases) {
+            if (t < start + p.ms) return (t - start).toFloat() / p.ms
+            start += p.ms
+        }
+        return 1f
+    }
+
     override fun onDraw(canvas: Canvas) {
         val cx = width / 2f
         val cy = height / 2f
         val r = min(width, height) / 2f
+        val d = resources.displayMetrics.density
+        // Everything is drawn inside this radius so strokes and dots are never clipped by the
+        // view's edge.
+        val safe = r - 8f * d
 
         when (style) {
-            BreathStyle.STILL -> canvas.drawCircle(cx, cy, r * 0.86f, fill)
+            BreathStyle.STILL -> canvas.drawCircle(cx, cy, safe * 0.9f, fill)
 
             BreathStyle.RIPPLE -> {
                 // Three rings spreading outward from a steady core, each fading as it grows.
-                canvas.drawCircle(cx, cy, r * 0.6f, fill)
+                canvas.drawCircle(cx, cy, safe * 0.6f, fill)
                 for (k in 0 until 3) {
                     val f = ((t / cycleMs.toFloat()) + k / 3f) % 1f
                     stroke.alpha = ((1f - f) * 200).toInt()
-                    canvas.drawCircle(cx, cy, r * (0.6f + 0.4f * ease.getInterpolation(f)), stroke)
+                    canvas.drawCircle(cx, cy, safe * (0.6f + 0.4f * ease.getInterpolation(f)), stroke)
                 }
             }
 
@@ -121,23 +135,37 @@ class BreathView @JvmOverloads constructor(
                 val (i, p, from) = phaseIndexAndProgress()
                 val to = style.phases[i].scale
                 val scale = from + (to - from) * p
-                canvas.drawCircle(cx, cy, r * 0.86f * scale, fill)
 
                 if (style == BreathStyle.BOX) {
-                    // A dot travels the square once per cycle, one side per phase.
-                    val inset = stroke.strokeWidth
+                    // The circle breathes inside a square; a dot travels the square once per
+                    // cycle, one side per phase (4 sides = in, hold, out, hold). Sharp corners
+                    // so the dot stays exactly on the line.
+                    val dotR = 6f * d
+                    val inset = dotR + stroke.strokeWidth
                     box.set(inset, inset, width - inset, height - inset)
-                    stroke.alpha = 70
-                    canvas.drawRoundRect(box, r * 0.18f, r * 0.18f, stroke)
+                    canvas.drawCircle(cx, cy, (box.width() / 2f) * 0.82f * scale, fill)
+                    stroke.alpha = 90
+                    canvas.drawRect(box, stroke)
                     val side = box.width()
-                    val d = (t / cycleMs.toFloat()) * 4f * side
+                    val dist = (t / cycleMs.toFloat()) * 4f * side
                     val (x, y) = when {
-                        d < side -> box.left + d to box.top
-                        d < 2 * side -> box.right to box.top + (d - side)
-                        d < 3 * side -> box.right - (d - 2 * side) to box.bottom
-                        else -> box.left to box.bottom - (d - 3 * side)
+                        dist < side -> box.left + dist to box.top
+                        dist < 2 * side -> box.right to box.top + (dist - side)
+                        dist < 3 * side -> box.right - (dist - 2 * side) to box.bottom
+                        else -> box.left to box.bottom - (dist - 3 * side)
                     }
-                    canvas.drawCircle(x, y, stroke.strokeWidth * 2.2f, fill)
+                    canvas.drawCircle(x, y, dotR, fill)
+                } else {
+                    canvas.drawCircle(cx, cy, safe * 0.86f * scale, fill)
+                    if (style == BreathStyle.FOUR_SEVEN_EIGHT) {
+                        // A progress ring so the long hold visibly counts down instead of
+                        // looking like the animation froze.
+                        stroke.alpha = 70
+                        canvas.drawCircle(cx, cy, safe, stroke)
+                        stroke.alpha = 230
+                        box.set(cx - safe, cy - safe, cx + safe, cy + safe)
+                        canvas.drawArc(box, -90f, 360f * phaseFraction(), false, stroke)
+                    }
                 }
             }
         }

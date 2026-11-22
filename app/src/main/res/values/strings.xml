@@ -98,7 +98,7 @@
     <string name="phase_hold">Hold</string>
     <string name="phase_out">Breathe out</string>
     <string name="puzzle_option">Offer a puzzle while waiting</string>
-    <string name="overlay_puzzle">Puzzle</string>
+    <string name="overlay_puzzle">Play a puzzle</string>
     <string name="overlay_back_to_breathing">Back to breathing</string>
     <string name="puzzle_solved">Solved!</string>
     <string name="puzzle_tap_new">Tap for a new one</string>

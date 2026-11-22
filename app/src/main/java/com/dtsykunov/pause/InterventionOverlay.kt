@@ -311,6 +311,20 @@ class InterventionOverlay(
             .start()
     }
 
+    /** The user left (home/recents/another app): stop taking touches and fade out quickly, which
+     *  looks far less abrupt than the view vanishing. */
+    fun dismissFade() {
+        if (removed || dismissing) return
+        dismissing = true
+        timer?.cancel()
+        params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        try {
+            wm.updateViewLayout(binding.root, params)
+        } catch (_: Exception) {
+        }
+        binding.root.animate().alpha(0f).setDuration(140).withEndAction { removeView() }.start()
+    }
+
     /** Remove immediately without animation (e.g. when the service is shutting down). */
     fun dismissNow() {
         timer?.cancel()
