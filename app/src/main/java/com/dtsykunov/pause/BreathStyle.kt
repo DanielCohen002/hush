@@ -7,7 +7,6 @@ package com.dtsykunov.pause
 enum class BreathStyle(val id: String, val labelRes: Int) {
     CLASSIC("classic", R.string.breath_classic),
     BOX("box", R.string.breath_box),
-    FOUR_SEVEN_EIGHT("478", R.string.breath_478),
     RIPPLE("ripple", R.string.breath_ripple),
     STILL("still", R.string.breath_still);
 
@@ -25,11 +24,6 @@ enum class BreathStyle(val id: String, val labelRes: Int) {
                 Phase(R.string.phase_hold, 4000, 1f),
                 Phase(R.string.phase_out, 4000, 0.72f),
                 Phase(R.string.phase_hold, 4000, 0.72f),
-            )
-            FOUR_SEVEN_EIGHT -> listOf(
-                Phase(R.string.phase_in, 4000, 1f),
-                Phase(R.string.phase_hold, 7000, 1f),
-                Phase(R.string.phase_out, 8000, 0.72f),
             )
             RIPPLE, STILL -> emptyList()
         }

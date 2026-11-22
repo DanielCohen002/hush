@@ -181,5 +181,22 @@
 
             </LinearLayout>
         </ScrollView>
+
+        <!-- Small countdown shown while a puzzle covers the breathing circle. -->
+        <TextView
+            android:id="@+id/cornerTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:background="@drawable/timer_chip"
+            android:fontFamily="sans-serif-medium"
+            android:minWidth="36dp"
+            android:gravity="center"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:textColor="?attr/pTextPrimary"
+            android:textSize="16sp"
+            android:visibility="gone" />
     </FrameLayout>
 </FrameLayout>

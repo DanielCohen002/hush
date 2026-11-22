@@ -248,6 +248,7 @@ class InterventionOverlay(
         binding.breathFrame.visibility = if (puzzleShown) View.GONE else View.VISIBLE
         binding.breatheText.visibility = if (puzzleShown) View.GONE else View.VISIBLE
         if (puzzleShown) binding.phaseText.visibility = View.GONE
+        updateCornerTimer()
         binding.puzzleButton.setText(if (puzzleShown) R.string.overlay_back_to_breathing else R.string.overlay_puzzle)
     }
 
@@ -270,7 +271,15 @@ class InterventionOverlay(
                 binding.phaseText.text = if (labelRes == 0) "" else binding.root.context.getString(labelRes)
             }
         }
-        binding.breathCircle.start(breathStyle)
+        binding.breathCircle.start(breathStyle, seconds * 1000L)
+    }
+
+    /** While a puzzle replaces the breathing circle (and its countdown), keep the time left
+     *  visible in the corner, whether or not the on-circle timer is turned on. */
+    private fun updateCornerTimer() {
+        val show = puzzleShown && !countdownDone
+        binding.cornerTimer.visibility = if (show) View.VISIBLE else View.GONE
+        if (show) binding.cornerTimer.text = remainingSeconds().toString()
     }
 
     private fun remainingMs() = (endAt - SystemClock.elapsedRealtime()).coerceAtLeast(0)
@@ -287,6 +296,7 @@ class InterventionOverlay(
         timer = object : CountDownTimer(left, 100) {
             override fun onTick(msLeft: Long) {
                 binding.countdownText.text = ceil(msLeft / 1000.0).toInt().coerceAtLeast(1).toString()
+                updateCornerTimer()
             }
 
             override fun onFinish() = finishCountdown()
@@ -296,6 +306,7 @@ class InterventionOverlay(
     private fun finishCountdown() {
         countdownDone = true
         binding.countdownText.text = "0"
+        updateCornerTimer()
         revealButtons()
     }
 

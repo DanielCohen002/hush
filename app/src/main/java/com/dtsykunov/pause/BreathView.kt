@@ -34,21 +34,27 @@ class BreathView @JvmOverloads constructor(
     private var style = BreathStyle.CLASSIC
     private var animator: ValueAnimator? = null
     private var cycleMs = 1L
+    private var timeScale = 1f // cycleMs relative to the style's natural cycle length
     private var t = 0L // ms into the current cycle
     private var lastPhase = -1
 
     /** Called with the phase's label resource (0 = none) each time the phase changes. */
     var onPhase: ((Int) -> Unit)? = null
 
-    fun start(style: BreathStyle) {
+    /** [totalMs] is the pause length: the cycle is stretched or squeezed (same proportions) so a
+     *  whole number of breaths fits the timer exactly, and the last breath ends as it does. */
+    fun start(style: BreathStyle, totalMs: Long) {
         stop()
         this.style = style
         lastPhase = -1
         val phases = style.phases
-        cycleMs = when (style) {
+        val base = when (style) {
             BreathStyle.RIPPLE -> 6000L
             else -> phases.sumOf { it.ms }.coerceAtLeast(1L)
         }
+        val cycles = Math.round(totalMs / base.toDouble()).toInt().coerceAtLeast(1)
+        cycleMs = (totalMs / cycles).coerceAtLeast(1L)
+        timeScale = cycleMs / base.toFloat()
         if (style == BreathStyle.STILL) {
             t = 0; invalidate(); return
         }
@@ -81,10 +87,11 @@ class BreathView @JvmOverloads constructor(
         var start = 0L
         var prev = phases.last().scale
         for ((i, p) in phases.withIndex()) {
-            if (t < start + p.ms) {
-                return Triple(i, ease.getInterpolation((t - start).toFloat() / p.ms), prev)
+            val len = (p.ms * timeScale).toLong().coerceAtLeast(1L)
+            if (t < start + len) {
+                return Triple(i, ease.getInterpolation((t - start).toFloat() / len), prev)
             }
-            start += p.ms
+            start += len
             prev = p.scale
         }
         return Triple(phases.lastIndex, 1f, prev)
@@ -97,16 +104,6 @@ class BreathView @JvmOverloads constructor(
             lastPhase = i
             onPhase?.invoke(style.phases[i].labelRes)
         }
-    }
-
-    /** Raw (linear) fraction 0..1 through the current phase, for progress indicators. */
-    private fun phaseFraction(): Float {
-        var start = 0L
-        for (p in style.phases) {
-            if (t < start + p.ms) return (t - start).toFloat() / p.ms
-            start += p.ms
-        }
-        return 1f
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -157,15 +154,6 @@ class BreathView @JvmOverloads constructor(
                     canvas.drawCircle(x, y, dotR, fill)
                 } else {
                     canvas.drawCircle(cx, cy, safe * 0.86f * scale, fill)
-                    if (style == BreathStyle.FOUR_SEVEN_EIGHT) {
-                        // A progress ring so the long hold visibly counts down instead of
-                        // looking like the animation froze.
-                        stroke.alpha = 70
-                        canvas.drawCircle(cx, cy, safe, stroke)
-                        stroke.alpha = 230
-                        box.set(cx - safe, cy - safe, cx + safe, cy + safe)
-                        canvas.drawArc(box, -90f, 360f * phaseFraction(), false, stroke)
-                    }
                 }
             }
         }

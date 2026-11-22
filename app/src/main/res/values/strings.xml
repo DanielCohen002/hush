@@ -91,7 +91,6 @@
     <string name="section_breath_style">Breathing style</string>
     <string name="breath_classic">Classic circle</string>
     <string name="breath_box">Box breathing (4-4-4-4)</string>
-    <string name="breath_478">4-7-8 breathing</string>
     <string name="breath_ripple">Ripples</string>
     <string name="breath_still">Still circle</string>
     <string name="phase_in">Breathe in</string>
