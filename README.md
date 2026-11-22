@@ -1,6 +1,6 @@
-<img src="docs/logo.png" alt="Lull logo" width="96" align="right">
+<img src="docs/logo.png" alt="Hush logo" width="96" align="right">
 
-# Lull
+# Hush
 
 A calm Android app that adds a short, timed pause before you open chosen apps. A fork of
 [Pause](https://github.com/dtsykunov/pause-app) by dtsykunov (MIT), with:
@@ -8,7 +8,7 @@ A calm Android app that adds a short, timed pause before you open chosen apps. A
 - a landscape layout and a pause screen you can still pull the notification shade over
 - apps of your choosing offered "instead" on the pause screen
 - breathing styles: classic, box, 4-7-8, ripples, still
-- three colour themes (Seafoam, Lavender, Ember), light and dark
+- three colour themes (Ember by default, Seafoam, and the original Lavender), light and dark
 - an optional puzzle while you wait: mini sudoku, word search or mini crossword, from bundled packs
   (`tools/gen_puzzles.py` builds them) so nothing is generated on the phone and nothing repeats
 
@@ -25,8 +25,8 @@ screen, so it needs no "draw over other apps" permission, and the app has no net
 
 ## Get the app
 
-Download the signed APK from [GitHub Releases](https://github.com/DanielCohen002/lull/releases/latest).
-Package name: `com.djcohen.lull`.
+Download the signed APK from [GitHub Releases](https://github.com/DanielCohen002/hush/releases/latest).
+Package name: `com.djcohen.hush`.
 
 ## Build
 

@@ -1,6 +1,6 @@
 <resources>
     <!-- Three runtime-selectable palettes; each has light and dark values in values/ and values-night/colors.xml. -->
-    <style name="Theme.Pause" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Pause.Seafoam" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="pNight">@color/teal_night</item>
         <item name="pPanel">@color/teal_panel</item>
         <item name="pPanelVariant">@color/teal_panel_variant</item>
@@ -52,7 +52,7 @@
         <item name="colorOutlineVariant">@color/lavender_outline</item>
     </style>
 
-    <style name="Theme.Pause.Ember" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.Pause" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="pNight">@color/ember_night</item>
         <item name="pPanel">@color/ember_panel</item>
         <item name="pPanelVariant">@color/ember_panel_variant</item>

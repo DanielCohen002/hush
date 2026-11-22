@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Lull (debug)</string>
-    <string name="service_label">Lull (debug)</string>
+    <string name="app_name">Hush (debug)</string>
+    <string name="service_label">Hush (debug)</string>
 </resources>

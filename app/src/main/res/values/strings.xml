@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Lull</string>
+    <string name="app_name">Hush</string>
     <string name="tagline">A breath before you open.</string>
     <string name="service_label">Pause monitor</string>
     <string name="service_description">Detects when you open a chosen app and shows a timed pause before you continue.</string>
@@ -112,5 +112,5 @@
     <string name="section_theme">Colour theme</string>
     <string name="theme_teal">Seafoam</string>
     <string name="theme_lavender">Lavender (original)</string>
-    <string name="theme_ember">Ember</string>
+    <string name="theme_ember">Ember (default)</string>
 </resources>

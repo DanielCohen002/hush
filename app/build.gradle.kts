@@ -20,7 +20,7 @@ android {
     buildToolsVersion = "34.0.0"
 
     defaultConfig {
-        applicationId = "com.djcohen.lull"
+        applicationId = "com.djcohen.hush"
         minSdk = 24
         targetSdk = 34
         versionCode = 25

@@ -3,18 +3,17 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Lull: a still core with two breath rings, inside the adaptive-icon safe zone. -->
+    <!-- Hush: a low sun over a still horizon, inside the adaptive-icon safe zone. -->
     <path
-        android:pathData="M22,54 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0"
-        android:strokeAlpha="0.35"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3" />
-    <path
-        android:pathData="M31,54 a23,23 0 1,0 46,0 a23,23 0 1,0 -46,0"
-        android:strokeAlpha="0.65"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.5" />
+        android:fillColor="#FFE0BE"
+        android:pathData="M34,56 a20,20 0 0,1 40,0 z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M41,54 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0" />
+        android:pathData="M24,62 h60 a2.5,2.5 0 0,1 0,5 h-60 a2.5,2.5 0 0,1 0,-5 z" />
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M33,72 h42 a2.5,2.5 0 0,1 0,5 h-42 a2.5,2.5 0 0,1 0,-5 z" />
+    <path
+        android:fillColor="#99FFFFFF"
+        android:pathData="M42,82 h24 a2.5,2.5 0 0,1 0,5 h-24 a2.5,2.5 0 0,1 0,-5 z" />
 </vector>
