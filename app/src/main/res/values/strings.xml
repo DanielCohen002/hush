@@ -125,4 +125,13 @@
     <string name="update_failed">Couldn\'t check for updates. Are you online?</string>
     <string name="update_download">Download</string>
     <string name="update_later">Later</string>
+    <string name="section_puzzle_library">Puzzle library</string>
+    <string name="library_builtin">Built in. Tap to download more.</string>
+    <string name="library_downloaded">Downloaded: larger library saved on this phone</string>
+    <string name="library_body">Hush comes with a set of puzzles. You can download a larger set from GitHub; it only goes online when you tap Download.</string>
+    <string name="library_download">Download new puzzles</string>
+    <string name="library_reset">Use built-in</string>
+    <string name="library_downloading">Downloading…</string>
+    <string name="library_done">Downloaded %1$d puzzles.</string>
+    <string name="library_failed">Couldn\'t download puzzles. Are you online?</string>
 </resources>

@@ -7,6 +7,11 @@ different --seed (or bigger counts) and rebuild the app.
 
     pip install nltk && python tools/gen_puzzles.py
 
+The bigger downloadable library the app fetches with "Download new puzzles" lives in
+puzzle-packs/ at the repo root; rebuild it with a fresh seed to give users new puzzles:
+
+    python tools/gen_puzzles.py --seed 7 --sudoku 1200 --wordsearch 800 --crossword 600 --out puzzle-packs
+
 Word and clue source: Princeton WordNet (permissive licence), via nltk.
 """
 import argparse
@@ -196,9 +201,10 @@ def main():
     ap.add_argument("--sudoku", type=int, default=400)
     ap.add_argument("--wordsearch", type=int, default=300)
     ap.add_argument("--crossword", type=int, default=250)
+    ap.add_argument("--out", default=OUT, help="output directory (default: the app's bundled assets)")
     args = ap.parse_args()
     rnd = random.Random(args.seed)
-    os.makedirs(OUT, exist_ok=True)
+    os.makedirs(args.out, exist_ok=True)
     for name, fn, n in (
         ("sudoku", sudoku_pack, args.sudoku),
         ("wordsearch", wordsearch_pack, args.wordsearch),
@@ -206,7 +212,7 @@ def main():
     ):
         pack = fn(n, rnd)
         rnd.shuffle(pack)
-        with open(os.path.join(OUT, name + ".json"), "w", encoding="utf-8", newline="\n") as f:
+        with open(os.path.join(args.out, name + ".json"), "w", encoding="utf-8", newline="\n") as f:
             json.dump(pack, f, separators=(",", ":"))
         print(name, len(pack))
 

@@ -131,6 +131,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        binding.puzzleLibraryRow.setOnClickListener {
+            val dialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.section_puzzle_library)
+                .setMessage(R.string.library_body)
+                .setPositiveButton(R.string.library_download) { _, _ ->
+                    Toast.makeText(this, R.string.library_downloading, Toast.LENGTH_SHORT).show()
+                    PuzzleUpdater.download(this) { total ->
+                        if (isFinishing || isDestroyed) return@download
+                        Toast.makeText(
+                            this,
+                            if (total == null) getString(R.string.library_failed)
+                            else getString(R.string.library_done, total),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        refreshLibraryRow()
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+            if (PuzzleUpdater.hasDownloaded(this)) {
+                dialog.setNeutralButton(R.string.library_reset) { _, _ ->
+                    PuzzleUpdater.reset(this)
+                    refreshLibraryRow()
+                }
+            }
+            dialog.show()
+        }
+
         binding.themeRow.setOnClickListener {
             val themes = AppTheme.values()
             MaterialAlertDialogBuilder(this)
@@ -225,6 +252,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshLibraryRow() {
+        binding.puzzleLibraryValue.setText(
+            if (PuzzleUpdater.hasDownloaded(this)) R.string.library_downloaded else R.string.library_builtin
+        )
+    }
+
     private fun applyDurationModeVisibility(random: Boolean) {
         binding.durationLabel.visibility = if (random) View.GONE else View.VISIBLE
         binding.durationSlider.visibility = if (random) View.GONE else View.VISIBLE
@@ -280,6 +313,7 @@ class MainActivity : AppCompatActivity() {
             else resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
         binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
         binding.puzzleSizeValue.setText(Prefs.puzzleSize(this).labelRes)
+        refreshLibraryRow()
         binding.themeValue.setText(Prefs.theme(this).labelRes)
         binding.updateValue.text = getString(R.string.version_value, UpdateChecker.currentVersion(this))
         binding.breathStyleValue.setText(Prefs.breathStyle(this).labelRes)

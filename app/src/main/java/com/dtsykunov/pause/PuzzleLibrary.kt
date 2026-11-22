@@ -46,11 +46,20 @@ object PuzzleLibrary {
 
     private val cache = HashMap<String, JSONArray>()
 
+    /** A downloaded pack (see [PuzzleUpdater]) wins over the one built into the app. */
     private fun pack(c: Context, name: String): JSONArray = synchronized(cache) {
         cache.getOrPut(name) {
-            c.assets.open("puzzles/$name.json").bufferedReader().use { JSONArray(it.readText()) }
+            val downloaded = java.io.File(PuzzleUpdater.dir(c), "$name.json")
+            val fromDisk = try {
+                if (downloaded.exists()) JSONArray(downloaded.readText()) else null
+            } catch (_: Exception) {
+                null // corrupt download: fall back to the built-in pack
+            }
+            fromDisk ?: c.assets.open("puzzles/$name.json").bufferedReader().use { JSONArray(it.readText()) }
         }
     }
+
+    fun clearCache() = synchronized(cache) { cache.clear() }
 
     /** Resolve [MIX] to a concrete type. */
     fun concrete(type: PuzzleType): PuzzleType =

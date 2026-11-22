@@ -166,6 +166,13 @@ object Prefs {
         sp(c).edit().putString(KEY_PUZZLE_SIZE, size.id).apply()
     }
 
+    /** Forget which puzzles have been seen, so the next ones start from a fresh random spot. */
+    fun resetPuzzleProgress(c: Context) {
+        val e = sp(c).edit()
+        for (name in listOf("sudoku", "wordsearch", "crossword")) e.remove(KEY_PUZZLE_IDX + name)
+        e.apply()
+    }
+
     fun theme(c: Context): AppTheme = AppTheme.fromId(sp(c).getString(KEY_THEME, null))
 
     fun setTheme(c: Context, theme: AppTheme) {
