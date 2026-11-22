@@ -13,7 +13,7 @@
         app:navigationIcon="@drawable/ic_arrow_back"
         app:title="@string/section_apps"
         app:titleCentered="false"
-        app:titleTextColor="@color/text_primary" />
+        app:titleTextColor="?attr/pTextPrimary" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/searchLayout"
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/loading"
-            android:textColor="@color/text_dim" />
+            android:textColor="?attr/pTextDim" />
 
         <TextView
             android:id="@+id/emptyText"
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="@string/no_matches"
-            android:textColor="@color/text_dim"
+            android:textColor="?attr/pTextDim"
             android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

@@ -1,25 +1,86 @@
 <resources>
+    <!-- Three runtime-selectable palettes; each has light and dark values in values/ and values-night/colors.xml. -->
     <style name="Theme.Pause" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/breath</item>
-        <item name="colorOnPrimary">@color/night</item>
-        <item name="colorPrimaryContainer">@color/breath_container</item>
-        <item name="colorOnPrimaryContainer">@color/breath</item>
-        <item name="colorSecondary">@color/breath</item>
-        <item name="colorOnSecondary">@color/night</item>
-        <item name="colorSecondaryContainer">@color/panel_variant</item>
-        <item name="colorOnSecondaryContainer">@color/text_primary</item>
-        <item name="android:colorBackground">@color/night</item>
-        <item name="colorSurface">@color/panel</item>
-        <item name="colorSurfaceVariant">@color/panel_variant</item>
-        <item name="colorOnSurface">@color/text_primary</item>
-        <item name="colorOnSurfaceVariant">@color/text_dim</item>
-        <item name="colorOutline">@color/outline</item>
-        <item name="colorOutlineVariant">@color/outline</item>
+        <item name="pNight">@color/teal_night</item>
+        <item name="pPanel">@color/teal_panel</item>
+        <item name="pPanelVariant">@color/teal_panel_variant</item>
+        <item name="pBreath">@color/teal_breath</item>
+        <item name="pBreathContainer">@color/teal_breath_container</item>
+        <item name="pTextPrimary">@color/teal_text_primary</item>
+        <item name="pTextDim">@color/teal_text_dim</item>
+        <item name="pOutline">@color/teal_outline</item>
+        <item name="colorPrimary">@color/teal_breath</item>
+        <item name="colorOnPrimary">@color/teal_night</item>
+        <item name="colorPrimaryContainer">@color/teal_breath_container</item>
+        <item name="colorOnPrimaryContainer">@color/teal_breath</item>
+        <item name="colorSecondary">@color/teal_breath</item>
+        <item name="colorOnSecondary">@color/teal_night</item>
+        <item name="colorSecondaryContainer">@color/teal_panel_variant</item>
+        <item name="colorOnSecondaryContainer">@color/teal_text_primary</item>
+        <item name="android:colorBackground">@color/teal_night</item>
+        <item name="colorSurface">@color/teal_panel</item>
+        <item name="colorSurfaceVariant">@color/teal_panel_variant</item>
+        <item name="colorOnSurface">@color/teal_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/teal_text_dim</item>
+        <item name="colorOutline">@color/teal_outline</item>
+        <item name="colorOutlineVariant">@color/teal_outline</item>
+    </style>
+
+    <style name="Theme.Pause.Lavender" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="pNight">@color/lavender_night</item>
+        <item name="pPanel">@color/lavender_panel</item>
+        <item name="pPanelVariant">@color/lavender_panel_variant</item>
+        <item name="pBreath">@color/lavender_breath</item>
+        <item name="pBreathContainer">@color/lavender_breath_container</item>
+        <item name="pTextPrimary">@color/lavender_text_primary</item>
+        <item name="pTextDim">@color/lavender_text_dim</item>
+        <item name="pOutline">@color/lavender_outline</item>
+        <item name="colorPrimary">@color/lavender_breath</item>
+        <item name="colorOnPrimary">@color/lavender_night</item>
+        <item name="colorPrimaryContainer">@color/lavender_breath_container</item>
+        <item name="colorOnPrimaryContainer">@color/lavender_breath</item>
+        <item name="colorSecondary">@color/lavender_breath</item>
+        <item name="colorOnSecondary">@color/lavender_night</item>
+        <item name="colorSecondaryContainer">@color/lavender_panel_variant</item>
+        <item name="colorOnSecondaryContainer">@color/lavender_text_primary</item>
+        <item name="android:colorBackground">@color/lavender_night</item>
+        <item name="colorSurface">@color/lavender_panel</item>
+        <item name="colorSurfaceVariant">@color/lavender_panel_variant</item>
+        <item name="colorOnSurface">@color/lavender_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/lavender_text_dim</item>
+        <item name="colorOutline">@color/lavender_outline</item>
+        <item name="colorOutlineVariant">@color/lavender_outline</item>
+    </style>
+
+    <style name="Theme.Pause.Ember" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="pNight">@color/ember_night</item>
+        <item name="pPanel">@color/ember_panel</item>
+        <item name="pPanelVariant">@color/ember_panel_variant</item>
+        <item name="pBreath">@color/ember_breath</item>
+        <item name="pBreathContainer">@color/ember_breath_container</item>
+        <item name="pTextPrimary">@color/ember_text_primary</item>
+        <item name="pTextDim">@color/ember_text_dim</item>
+        <item name="pOutline">@color/ember_outline</item>
+        <item name="colorPrimary">@color/ember_breath</item>
+        <item name="colorOnPrimary">@color/ember_night</item>
+        <item name="colorPrimaryContainer">@color/ember_breath_container</item>
+        <item name="colorOnPrimaryContainer">@color/ember_breath</item>
+        <item name="colorSecondary">@color/ember_breath</item>
+        <item name="colorOnSecondary">@color/ember_night</item>
+        <item name="colorSecondaryContainer">@color/ember_panel_variant</item>
+        <item name="colorOnSecondaryContainer">@color/ember_text_primary</item>
+        <item name="android:colorBackground">@color/ember_night</item>
+        <item name="colorSurface">@color/ember_panel</item>
+        <item name="colorSurfaceVariant">@color/ember_panel_variant</item>
+        <item name="colorOnSurface">@color/ember_text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/ember_text_dim</item>
+        <item name="colorOutline">@color/ember_outline</item>
+        <item name="colorOutlineVariant">@color/ember_outline</item>
     </style>
 
     <!-- Small tracked, uppercase section labels. -->
     <style name="Eyebrow">
-        <item name="android:textColor">@color/text_dim</item>
+        <item name="android:textColor">?attr/pTextDim</item>
         <item name="android:textSize">12sp</item>
         <item name="android:letterSpacing">0.12</item>
         <item name="android:textAllCaps">true</item>

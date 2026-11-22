@@ -21,6 +21,6 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="1"
-        android:textColor="@color/overlay_text_dim"
+        android:textColor="?attr/pTextDim"
         android:textSize="12sp" />
 </LinearLayout>

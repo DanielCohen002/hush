@@ -21,10 +21,10 @@ class BreathView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = context.getColor(R.color.overlay_circle)
+        color = context.themeColor(R.attr.pBreath)
     }
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = context.getColor(R.color.overlay_circle)
+        color = context.themeColor(R.attr.pBreath)
         style = Paint.Style.STROKE
         strokeWidth = resources.displayMetrics.density * 3f
     }

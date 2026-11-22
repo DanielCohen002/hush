@@ -21,6 +21,9 @@ object Prefs {
     private const val KEY_BREATH_STYLE = "breath_style"
     private const val KEY_ALT_PKGS = "alt_packages"
     private const val KEY_PUZZLE = "puzzle_enabled"
+    private const val KEY_PUZZLE_TYPE = "puzzle_type"
+    private const val KEY_THEME = "app_theme"
+    private const val KEY_PUZZLE_IDX = "puzzle_idx_"
     private const val STAT_INTERRUPTIONS = "si_"
     private const val STAT_OPENS = "so_"
     private const val STAT_CANCELS = "sc_"
@@ -147,14 +150,34 @@ object Prefs {
         sp(c).edit().putBoolean(KEY_PUZZLE, on).apply()
     }
 
-    /** Apps offered on the pause screen as something better to open instead. Until the user
-     *  edits the list this is the installed subset of [AltApps.SUGGESTED], so it works out of
-     *  the box; once edited, exactly what they chose (possibly nothing). */
+    /** Apps the user chose to offer on the pause screen as something better to open instead.
+     *  Empty until they pick some. */
     fun altPackages(c: Context): Set<String> =
-        sp(c).getStringSet(KEY_ALT_PKGS, null)?.toSet() ?: AltApps.installedDefaults(c)
+        sp(c).getStringSet(KEY_ALT_PKGS, emptySet())?.toSet() ?: emptySet()
 
     fun setAltPackages(c: Context, pkgs: Set<String>) {
         sp(c).edit().putStringSet(KEY_ALT_PKGS, pkgs).apply()
+    }
+
+    fun theme(c: Context): AppTheme = AppTheme.fromId(sp(c).getString(KEY_THEME, null))
+
+    fun setTheme(c: Context, theme: AppTheme) {
+        sp(c).edit().putString(KEY_THEME, theme.id).apply()
+    }
+
+    fun puzzleType(c: Context): PuzzleType = PuzzleType.fromId(sp(c).getString(KEY_PUZZLE_TYPE, null))
+
+    fun setPuzzleType(c: Context, type: PuzzleType) {
+        sp(c).edit().putString(KEY_PUZZLE_TYPE, type.id).apply()
+    }
+
+    /** Index of the next unseen puzzle in [pack]'s bundled list. Starts at a random spot on
+     *  first use so two installs don't walk the same order; wraps only after the whole pack. */
+    fun nextPuzzleIndex(c: Context, pack: String, size: Int): Int {
+        val key = KEY_PUZZLE_IDX + pack
+        val cur = if (sp(c).contains(key)) sp(c).getInt(key, 0) else Random.nextInt(size)
+        sp(c).edit().putInt(key, (cur + 1) % size).apply()
+        return cur % size
     }
 
     /** When [pkg] was last actually opened (via "Open anyway"), or null if never. */

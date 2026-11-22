@@ -39,7 +39,7 @@ class InterventionOverlay(
     private val wm = service.getSystemService(AccessibilityService.WINDOW_SERVICE) as WindowManager
     // Material widgets require a Material theme on the inflating context; the bare service
     // context has none, so wrap it in the app theme.
-    private val themedContext get() = ContextThemeWrapper(service, R.style.Theme_Pause)
+    private val themedContext get() = ContextThemeWrapper(service, Prefs.theme(service).styleRes)
     private lateinit var binding: OverlayInterventionBinding
     private lateinit var params: WindowManager.LayoutParams
 
@@ -58,6 +58,19 @@ class InterventionOverlay(
 
     private val breathStyle = Prefs.breathStyle(service)
     private val puzzleEnabled = Prefs.puzzleEnabled(service)
+
+    // The puzzle in play. Chosen the first time it's shown, so opening the pause screen without
+    // touching the puzzle doesn't use one up; kept across rotations.
+    private var puzzle: Any? = null
+
+    private fun showPuzzle() {
+        val p = puzzle ?: PuzzleLibrary.next(service, PuzzleLibrary.concrete(Prefs.puzzleType(service)))
+            .also { puzzle = it }
+        binding.puzzleView.show(p) {
+            puzzle = null
+            showPuzzle()
+        }
+    }
 
     fun show() {
         endAt = SystemClock.elapsedRealtime() + seconds * 1000L
@@ -210,6 +223,13 @@ class InterventionOverlay(
 
     private fun setPuzzleShown(show: Boolean) {
         puzzleShown = show && puzzleEnabled
+        if (puzzleShown) {
+            try {
+                showPuzzle()
+            } catch (_: Exception) {
+                puzzleShown = false // a missing/corrupt pack must never break the pause screen
+            }
+        }
         binding.puzzleView.visibility = if (puzzleShown) View.VISIBLE else View.GONE
         binding.breathFrame.visibility = if (puzzleShown) View.GONE else View.VISIBLE
         binding.breatheText.visibility = if (puzzleShown) View.GONE else View.VISIBLE

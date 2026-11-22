@@ -102,4 +102,15 @@
     <string name="overlay_back_to_breathing">Back to breathing</string>
     <string name="puzzle_solved">Solved!</string>
     <string name="puzzle_tap_new">Tap for a new one</string>
+    <string name="alt_apps_clear">Clear all</string>
+    <string name="alt_apps_none">None chosen. Pick apps to offer on the pause screen.</string>
+    <string name="section_puzzle_type">Puzzle type</string>
+    <string name="puzzle_sudoku">Mini sudoku</string>
+    <string name="puzzle_wordsearch">Word search</string>
+    <string name="puzzle_crossword">Mini crossword</string>
+    <string name="puzzle_mix">Mix it up</string>
+    <string name="section_theme">Colour theme</string>
+    <string name="theme_teal">Seafoam</string>
+    <string name="theme_lavender">Lavender (original)</string>
+    <string name="theme_ember">Ember</string>
 </resources>

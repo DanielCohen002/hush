@@ -27,12 +27,22 @@ class AppsActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(Prefs.theme(this).styleRes)
         super.onCreate(savedInstanceState)
         binding = ActivityAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         binding.toolbar.setNavigationOnClickListener { finish() }
-        if (altMode) binding.toolbar.setTitle(R.string.section_alt_apps)
+        if (altMode) {
+            binding.toolbar.setTitle(R.string.section_alt_apps)
+            binding.toolbar.inflateMenu(R.menu.alt_apps)
+            binding.toolbar.setOnMenuItemClickListener {
+                Prefs.setAltPackages(this, emptySet())
+                allEntries.forEach { it.blocked = false }
+                applyFilter(binding.searchInput.text?.toString().orEmpty())
+                true
+            }
+        }
 
         adapter = AppListAdapter(emptyList()) { entry, on ->
             val current = (if (altMode) Prefs.altPackages(this) else Prefs.blockedPackages(this))

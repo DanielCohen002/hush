@@ -1,27 +1,37 @@
 <resources>
-    <!-- Core palette: misty seafoam ground with a single deep-teal accent. -->
-    <color name="night">#F2F7F5</color>
-    <color name="panel">#E6EFEC</color>
-    <color name="panel_variant">#D9E6E2</color>
-    <color name="breath">#1F7A6D</color>
-    <color name="breath_container">#C5E3DC</color>
-    <color name="text_primary">#14282A</color>
-    <color name="text_dim">#546B6A</color>
-    <color name="outline">#BCD2CD</color>
+    <!-- teal -->
+    <color name="teal_night">#F2F7F5</color>
+    <color name="teal_panel">#E6EFEC</color>
+    <color name="teal_panel_variant">#D9E6E2</color>
+    <color name="teal_breath">#1F7A6D</color>
+    <color name="teal_breath_container">#C5E3DC</color>
+    <color name="teal_text_primary">#14282A</color>
+    <color name="teal_text_dim">#546B6A</color>
+    <color name="teal_outline">#BCD2CD</color>
+    <!-- lavender -->
+    <color name="lavender_night">#F5F0FC</color>
+    <color name="lavender_panel">#EDE6F8</color>
+    <color name="lavender_panel_variant">#E3D9F4</color>
+    <color name="lavender_breath">#7260A8</color>
+    <color name="lavender_breath_container">#D5CCEE</color>
+    <color name="lavender_text_primary">#2B2442</color>
+    <color name="lavender_text_dim">#6A6080</color>
+    <color name="lavender_outline">#C4BAE0</color>
+    <!-- ember -->
+    <color name="ember_night">#FBF5EE</color>
+    <color name="ember_panel">#F3E8DB</color>
+    <color name="ember_panel_variant">#EADBC9</color>
+    <color name="ember_breath">#B5532B</color>
+    <color name="ember_breath_container">#F0D2C0</color>
+    <color name="ember_text_primary">#2E2018</color>
+    <color name="ember_text_dim">#75604F</color>
+    <color name="ember_outline">#DCC8B0</color>
 
-    <!-- Status cards: muted sage for ready, soft rose for needs-attention (kept low-saturation
-         to sit with the lavender ground). -->
+    <!-- Status cards (same in every theme) -->
     <color name="status_ok">#2F6B47</color>
     <color name="status_ok_container">#DCEDE1</color>
     <color name="status_ok_outline">#A9D3B6</color>
     <color name="status_warn">#8E2F3D</color>
     <color name="status_warn_container">#F4DEE1</color>
     <color name="status_warn_outline">#E0B3BA</color>
-
-    <!-- Pause overlay -->
-    <color name="overlay_bg">#F2F7F5</color>
-    <color name="overlay_circle">#1F7A6D</color>
-    <color name="overlay_text">#14282A</color>
-    <color name="overlay_text_dim">#546B6A</color>
-    <color name="overlay_countdown">#F2F7F5</color>
 </resources>

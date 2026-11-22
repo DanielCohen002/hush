@@ -6,9 +6,9 @@
     <!-- Breath rings, kept within the adaptive-icon safe zone. -->
     <path
         android:pathData="M24,54 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0"
-        android:strokeColor="@color/breath"
+        android:strokeColor="@color/teal_breath"
         android:strokeWidth="5" />
     <path
-        android:fillColor="@color/breath"
+        android:fillColor="@color/teal_breath"
         android:pathData="M40,54 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0" />
 </vector>

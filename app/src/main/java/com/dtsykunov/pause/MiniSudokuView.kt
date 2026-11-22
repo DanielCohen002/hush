@@ -9,46 +9,50 @@ import android.view.MotionEvent
 import android.view.View
 
 /**
- * Draws and plays a [MiniSudoku]: a 6x6 grid with a number pad row underneath (1-6, erase).
- * Drawn as one view so it needs no extra layout and sizes itself from its width.
+ * Plays a 6x6 sudoku (2x3 boxes) with a number pad row underneath (1-6, erase). Drawn as one
+ * view so it needs no extra layout and sizes itself from its width.
  */
 class MiniSudokuView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
-    private val n = MiniSudoku.N
-    private var puzzle = MiniSudoku.generate()
-    private val cells = puzzle.given.copyOf()
+    private val n = 6
+    private var given = IntArray(n * n)
+    private var solution = IntArray(n * n)
+    private var cells = IntArray(n * n)
     private var selected = -1
     private var solved = false
+    private var onSolved: (() -> Unit)? = null
 
     private val text = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
     private val line = Paint(Paint.ANTI_ALIAS_FLAG)
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val accent = context.getColor(R.color.overlay_circle)
-    private val ink = context.getColor(R.color.overlay_text)
-    private val dim = context.getColor(R.color.overlay_text_dim)
-    private val bg = context.getColor(R.color.overlay_bg)
+    private val accent = context.themeColor(R.attr.pBreath)
+    private val ink = context.themeColor(R.attr.pTextPrimary)
+    private val dim = context.themeColor(R.attr.pTextDim)
+    private val bg = context.themeColor(R.attr.pNight)
     private val wrong = context.getColor(R.color.status_warn)
     private val tint = (accent and 0x00FFFFFF) or 0x33000000
     private val wrongTint = (wrong and 0x00FFFFFF) or 0x33000000
+
+    /** [onSolved] is called when the board is completed, to let the host offer a new puzzle. */
+    fun load(puzzle: PuzzleLibrary.Sudoku, onSolved: () -> Unit) {
+        given = puzzle.given
+        solution = puzzle.solution
+        cells = given.copyOf()
+        selected = -1
+        solved = false
+        this.onSolved = onSolved
+        invalidate()
+    }
 
     private fun cell() = width / n.toFloat()
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         val w = MeasureSpec.getSize(widthSpec)
         // Grid is square; the pad adds one more cell-height row plus a small gap.
-        val h = (w + w / n.toFloat() * 1.25f).toInt()
-        setMeasuredDimension(w, h)
-    }
-
-    fun newPuzzle() {
-        puzzle = MiniSudoku.generate()
-        puzzle.given.copyInto(cells)
-        selected = -1
-        solved = false
-        invalidate()
+        setMeasuredDimension(w, (w + w / n.toFloat() * 1.25f).toInt())
     }
 
     private fun baseline(centerY: Float) = centerY - (text.ascent() + text.descent()) / 2
@@ -85,11 +89,11 @@ class MiniSudokuView @JvmOverloads constructor(
         for (p in 0 until n * n) {
             val v = cells[p]
             if (v == 0) continue
-            val given = puzzle.given[p] != 0
-            text.typeface = if (given) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+            val isGiven = given[p] != 0
+            text.typeface = if (isGiven) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
             text.color = when {
-                given -> ink
-                v != puzzle.solution[p] -> wrong
+                isGiven -> ink
+                v != solution[p] -> wrong
                 else -> accent
             }
             canvas.drawText(v.toString(), (p % n + 0.5f) * s, baseline((p / n + 0.5f) * s), text)
@@ -144,16 +148,16 @@ class MiniSudokuView @JvmOverloads constructor(
     private fun handleTap(x: Float, y: Float) {
         val s = cell()
         if (solved) {
-            newPuzzle()
+            onSolved?.invoke()
             return
         }
         if (y < width) {
             val p = (y / s).toInt().coerceIn(0, n - 1) * n + (x / s).toInt().coerceIn(0, n - 1)
-            selected = if (puzzle.given[p] == 0) p else -1
+            selected = if (given[p] == 0) p else -1
         } else if (y >= width + s * 0.25f && selected >= 0) {
             val k = (x / (width / (n + 1f))).toInt().coerceIn(0, n)
             cells[selected] = if (k < n) k + 1 else 0
-            if (cells.contentEquals(puzzle.solution)) {
+            if (cells.contentEquals(solution)) {
                 solved = true
                 selected = -1
             }

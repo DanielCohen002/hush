@@ -14,6 +14,7 @@ class StatsActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStatsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(Prefs.theme(this).styleRes)
         super.onCreate(savedInstanceState)
         binding = ActivityStatsBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -53,7 +54,7 @@ class StatsActivity : AppCompatActivity() {
                 text = getString(R.string.stats_empty)
                 gravity = Gravity.CENTER
                 textSize = 16f
-                setTextColor(getColor(R.color.text_dim))
+                setTextColor(themeColor(R.attr.pTextDim))
                 setPadding(0, 64, 0, 0)
             }
             container.addView(empty)

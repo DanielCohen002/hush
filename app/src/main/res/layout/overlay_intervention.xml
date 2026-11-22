@@ -11,7 +11,7 @@
         android:id="@+id/panel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/overlay_bg">
+        android:background="?attr/pNight">
 
         <ScrollView
             android:id="@+id/scrollView"
@@ -35,7 +35,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-medium"
                     android:gravity="center"
-                    android:textColor="@color/overlay_text"
+                    android:textColor="?attr/pTextPrimary"
                     android:textSize="22sp"
                     tools:text="Opening Instagram" />
 
@@ -45,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:gravity="center"
-                    android:textColor="@color/overlay_text_dim"
+                    android:textColor="?attr/pTextDim"
                     android:textSize="14sp"
                     tools:text="Last opened 10m ago, tried 5 times in the last 24h" />
 
@@ -72,12 +72,12 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:fontFamily="sans-serif-thin"
-                            android:textColor="@color/overlay_countdown"
+                            android:textColor="?attr/pNight"
                             android:textSize="76sp"
                             tools:text="8" />
                     </FrameLayout>
 
-                    <com.dtsykunov.pause.MiniSudokuView
+                    <com.dtsykunov.pause.PuzzleHost
                         android:id="@+id/puzzleView"
                         android:layout_width="300dp"
                         android:layout_height="wrap_content"
@@ -93,7 +93,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:gravity="center"
                     android:minHeight="28dp"
-                    android:textColor="@color/overlay_text"
+                    android:textColor="?attr/pTextPrimary"
                     android:textSize="20sp"
                     android:visibility="gone" />
 
@@ -104,7 +104,7 @@
                     android:gravity="center"
                     android:letterSpacing="0.03"
                     android:text="@string/overlay_breathe"
-                    android:textColor="@color/overlay_text_dim"
+                    android:textColor="?attr/pTextDim"
                     android:textSize="18sp" />
 
                 <LinearLayout
@@ -134,7 +134,7 @@
                         android:layout_marginTop="6dp"
                         android:minHeight="48dp"
                         android:text="@string/overlay_open"
-                        android:textColor="@color/overlay_text_dim"
+                        android:textColor="?attr/pTextDim"
                         android:visibility="invisible" />
                 </LinearLayout>
 
@@ -152,7 +152,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/overlay_instead"
-                        android:textColor="@color/overlay_text_dim"
+                        android:textColor="?attr/pTextDim"
                         android:textSize="13sp" />
 
                     <LinearLayout
@@ -171,7 +171,7 @@
                     android:layout_marginTop="8dp"
                     android:minHeight="48dp"
                     android:text="@string/overlay_puzzle"
-                    android:textColor="@color/overlay_text_dim"
+                    android:textColor="?attr/pTextDim"
                     android:visibility="gone" />
             </LinearLayout>
         </ScrollView>

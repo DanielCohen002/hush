@@ -1,0 +1,10 @@
+<resources>
+    <attr name="pBreath" format="color" />
+    <attr name="pBreathContainer" format="color" />
+    <attr name="pNight" format="color" />
+    <attr name="pOutline" format="color" />
+    <attr name="pPanel" format="color" />
+    <attr name="pPanelVariant" format="color" />
+    <attr name="pTextDim" format="color" />
+    <attr name="pTextPrimary" format="color" />
+</resources>

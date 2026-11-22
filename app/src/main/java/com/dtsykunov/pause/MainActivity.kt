@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(Prefs.theme(this).styleRes)
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -67,6 +68,40 @@ class MainActivity : AppCompatActivity() {
                     Prefs.setBreathStyle(this, styles[which])
                     binding.breathStyleValue.setText(styles[which].labelRes)
                     dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        binding.puzzleTypeRow.setOnClickListener {
+            val types = PuzzleType.values()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.section_puzzle_type)
+                .setSingleChoiceItems(
+                    types.map { getString(it.labelRes) }.toTypedArray(),
+                    types.indexOf(Prefs.puzzleType(this)),
+                ) { dialog, which ->
+                    Prefs.setPuzzleType(this, types[which])
+                    binding.puzzleTypeValue.setText(types[which].labelRes)
+                    dialog.dismiss()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        binding.themeRow.setOnClickListener {
+            val themes = AppTheme.values()
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.section_theme)
+                .setSingleChoiceItems(
+                    themes.map { getString(it.labelRes) }.toTypedArray(),
+                    themes.indexOf(Prefs.theme(this)),
+                ) { dialog, which ->
+                    dialog.dismiss()
+                    if (themes[which] != Prefs.theme(this)) {
+                        Prefs.setTheme(this, themes[which])
+                        recreate()
+                    }
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
@@ -198,7 +233,11 @@ class MainActivity : AppCompatActivity() {
         binding.pausedAppsCount.text = resources.getQuantityString(R.plurals.paused_count, count, count)
 
         val altCount = Prefs.altPackages(this).size
-        binding.altAppsCount.text = resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
+        binding.altAppsCount.text =
+            if (altCount == 0) getString(R.string.alt_apps_none)
+            else resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
+        binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
+        binding.themeValue.setText(Prefs.theme(this).labelRes)
         binding.breathStyleValue.setText(Prefs.breathStyle(this).labelRes)
     }
 
