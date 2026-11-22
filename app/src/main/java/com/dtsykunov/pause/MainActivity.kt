@@ -105,6 +105,32 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
+        binding.updateRow.setOnClickListener {
+            Toast.makeText(this, R.string.update_checking, Toast.LENGTH_SHORT).show()
+            UpdateChecker.check(this) { result ->
+                if (isFinishing || isDestroyed) return@check
+                val dialog = MaterialAlertDialogBuilder(this).setTitle(R.string.check_updates)
+                when (result) {
+                    is UpdateChecker.Result.UpToDate -> dialog
+                        .setMessage(getString(R.string.update_up_to_date, result.current))
+                        .setPositiveButton(R.string.got_it, null)
+                    is UpdateChecker.Result.Available -> dialog
+                        .setMessage(getString(R.string.update_available, result.current, result.latest))
+                        .setPositiveButton(R.string.update_download) { _, _ ->
+                            try {
+                                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result.url)))
+                            } catch (_: Exception) {
+                            }
+                        }
+                        .setNegativeButton(R.string.update_later, null)
+                    UpdateChecker.Result.Failed -> dialog
+                        .setMessage(R.string.update_failed)
+                        .setPositiveButton(R.string.got_it, null)
+                }
+                dialog.show()
+            }
+        }
+
         binding.themeRow.setOnClickListener {
             val themes = AppTheme.values()
             MaterialAlertDialogBuilder(this)
@@ -255,6 +281,7 @@ class MainActivity : AppCompatActivity() {
         binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
         binding.puzzleSizeValue.setText(Prefs.puzzleSize(this).labelRes)
         binding.themeValue.setText(Prefs.theme(this).labelRes)
+        binding.updateValue.text = getString(R.string.version_value, UpdateChecker.currentVersion(this))
         binding.breathStyleValue.setText(Prefs.breathStyle(this).labelRes)
     }
 
