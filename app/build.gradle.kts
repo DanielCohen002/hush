@@ -20,11 +20,11 @@ android {
     buildToolsVersion = "34.0.0"
 
     defaultConfig {
-        applicationId = "com.dtsykunov.pause"
+        applicationId = "com.djcohen.lull"
         minSdk = 24
         targetSdk = 34
-        versionCode = 24
-        versionName = "0.5.0"
+        versionCode = 25
+        versionName = "0.6.0"
         resourceConfigurations += listOf("en")
     }
 

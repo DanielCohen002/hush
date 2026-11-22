@@ -3,12 +3,18 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Breath rings, kept within the adaptive-icon safe zone. -->
+    <!-- Lull: a still core with two breath rings, inside the adaptive-icon safe zone. -->
     <path
-        android:pathData="M24,54 a30,30 0 1,0 60,0 a30,30 0 1,0 -60,0"
-        android:strokeColor="@color/teal_breath"
-        android:strokeWidth="5" />
+        android:pathData="M22,54 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0"
+        android:strokeAlpha="0.35"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3" />
     <path
-        android:fillColor="@color/teal_breath"
-        android:pathData="M40,54 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0" />
+        android:pathData="M31,54 a23,23 0 1,0 46,0 a23,23 0 1,0 -46,0"
+        android:strokeAlpha="0.65"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3.5" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M41,54 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0" />
 </vector>

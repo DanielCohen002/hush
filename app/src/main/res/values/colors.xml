@@ -34,4 +34,5 @@
     <color name="status_warn">#8E2F3D</color>
     <color name="status_warn_container">#F4DEE1</color>
     <color name="status_warn_outline">#E0B3BA</color>
+    <color name="ic_launcher_bg">#17695E</color>
 </resources>

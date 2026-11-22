@@ -23,5 +23,5 @@ jobs:
           ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: pause-debug-apk
+          name: lull-debug-apk
           path: app/build/outputs/apk/debug/*.apk

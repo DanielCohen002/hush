@@ -50,16 +50,16 @@ jobs:
           ./gradlew assembleRelease
 
       - name: Name the APK
-        run: cp app/build/outputs/apk/release/app-release.apk "pause-${GITHUB_REF_NAME}.apk"
+        run: cp app/build/outputs/apk/release/app-release.apk "lull-${GITHUB_REF_NAME}.apk"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: pause-*.apk
-          name: Pause ${{ github.ref_name }}
+          files: lull-*.apk
+          name: Lull ${{ github.ref_name }}
           generate_release_notes: true
           # Semver: a hyphen means prerelease (v0.5.0-beta.1). Those stay off the "Latest"
           # badge and /releases/latest, so a test build from a branch never looks stable.
           prerelease: ${{ contains(github.ref_name, '-') }}
           body: |
-            Pause is a free, open-source Android app that adds a short, timed pause before you open distracting apps.
+            Lull is a free, open-source Android app that adds a short, timed pause before you open distracting apps.

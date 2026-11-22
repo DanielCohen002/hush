@@ -1,9 +1,19 @@
-# Pause
+<img src="docs/logo.png" alt="Lull logo" width="96" align="right">
 
-A minimal Android app that adds a short, timed pause before you open chosen apps. When you launch a
-selected app, the screen is covered by a panel with a countdown; only after it finishes can you choose
-**Open anyway** or **Cancel**. The pause screen also shows how many times you've opened that app in the
-last 24 hours and when you last opened it.
+# Lull
+
+A calm Android app that adds a short, timed pause before you open chosen apps. A fork of
+[Pause](https://github.com/dtsykunov/pause-app) by dtsykunov (MIT), with:
+
+- a landscape layout and a pause screen you can still pull the notification shade over
+- apps of your choosing offered "instead" on the pause screen
+- breathing styles: classic, box, 4-7-8, ripples, still
+- three colour themes (Seafoam, Lavender, Ember), light and dark
+- an optional puzzle while you wait: mini sudoku, word search or mini crossword, from bundled packs
+  (`tools/gen_puzzles.py` builds them) so nothing is generated on the phone and nothing repeats
+
+When you launch a selected app, the screen is covered by a panel with a countdown; only after it
+finishes can you choose **Open anyway** or **Cancel**.
 
 It uses an Accessibility Service to detect app launches and an accessibility overlay to draw the pause
 screen, so it needs no "draw over other apps" permission, and the app has no network access.
@@ -15,18 +25,8 @@ screen, so it needs no "draw over other apps" permission, and the app has no net
 
 ## Get the app
 
-[<img src="docs/fdroid-badge.svg" alt="Get it on F-Droid" height="80">](https://f-droid.org/en/packages/com.dtsykunov.pause/)
-
-Or download the APK from [GitHub Releases](https://github.com/dtsykunov/pause-app/releases/latest).
-
-## Screenshots
-
-<p align="center">
-  <img src="docs/screenshots/overlay.png" width="200" alt="The pause screen: a countdown before a chosen app opens" />
-  <img src="docs/screenshots/settings.png" width="200" alt="Settings: pause length, message, and skip window" />
-  <img src="docs/screenshots/apps.png" width="200" alt="Choosing which apps to pause" />
-  <img src="docs/screenshots/stats.png" width="200" alt="Per-app stats and total time paused" />
-</p>
+Download the signed APK from [GitHub Releases](https://github.com/DanielCohen002/lull/releases/latest).
+Package name: `com.djcohen.lull`.
 
 ## Build
 
