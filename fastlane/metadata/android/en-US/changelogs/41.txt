@@ -1,0 +1,4 @@
+- Puzzles: turn on any of sudoku, word search and crossword (one or several). Turn all off to remove the puzzle option. This replaces the old on/off switch and puzzle type.
+- New option: only pause during certain hours of the day (overnight ranges work).
+- The YouTube hold behind the pause is more reliable: Hush now also takes audio focus, not just a pause key.
+- The pause no longer pops up at random while you are already in an app (launcher window events alone no longer count as leaving).

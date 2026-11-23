@@ -74,16 +74,19 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.puzzleTypeRow.setOnClickListener {
-            val types = PuzzleType.values()
+            val types = PuzzleType.selectable
+            val chosen = Prefs.puzzleTypes(this).toMutableSet()
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.section_puzzle_type)
-                .setSingleChoiceItems(
+                .setMultiChoiceItems(
                     types.map { getString(it.labelRes) }.toTypedArray(),
-                    types.indexOf(Prefs.puzzleType(this)),
-                ) { dialog, which ->
-                    Prefs.setPuzzleType(this, types[which])
-                    binding.puzzleTypeValue.setText(types[which].labelRes)
-                    dialog.dismiss()
+                    BooleanArray(types.size) { types[it] in chosen },
+                ) { _, which, on ->
+                    if (on) chosen.add(types[which]) else chosen.remove(types[which])
+                }
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    Prefs.setPuzzleTypes(this, chosen)
+                    refreshPuzzleRows()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
@@ -176,13 +179,6 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        binding.puzzleSwitch.isChecked = Prefs.puzzleEnabled(this)
-        binding.puzzleRow.setOnClickListener {
-            val on = !binding.puzzleSwitch.isChecked
-            binding.puzzleSwitch.isChecked = on
-            Prefs.setPuzzleEnabled(this, on)
-        }
-
         binding.lengthHelp.setOnClickListener {
             showHint(R.string.section_length, R.string.help_length_body)
         }
@@ -244,12 +240,64 @@ class MainActivity : AppCompatActivity() {
             Prefs.setAllowMinutes(this, minutes)
         }
 
+        refreshHoursRows()
+        binding.hoursRow.setOnClickListener {
+            val on = !binding.hoursSwitch.isChecked
+            Prefs.setHoursEnabled(this, on)
+            refreshHoursRows()
+        }
+        binding.hoursRangeRow.setOnClickListener {
+            pickTime(R.string.hours_pick_start, Prefs.hoursStart(this)) { start ->
+                pickTime(R.string.hours_pick_end, Prefs.hoursEnd(this)) { end ->
+                    Prefs.setHours(this, start, end)
+                    refreshHoursRows()
+                }
+            }
+        }
+
         binding.pauseAgainSwitch.isChecked = Prefs.pauseAgainWhenAllowEnds(this)
         binding.pauseAgainRow.setOnClickListener {
             val on = !binding.pauseAgainSwitch.isChecked
             binding.pauseAgainSwitch.isChecked = on
             Prefs.setPauseAgainWhenAllowEnds(this, on)
         }
+    }
+
+    /** Summary of the puzzle toggles; the difficulty and library rows only matter with a puzzle on. */
+    private fun refreshPuzzleRows() {
+        val on = PuzzleType.selectable.filter { it in Prefs.puzzleTypes(this) }
+        binding.puzzleTypeValue.text =
+            if (on.isEmpty()) getString(R.string.puzzle_none)
+            else on.joinToString(", ") { getString(it.labelRes) }
+        val v = if (on.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        binding.puzzleLevelRow.visibility = v
+        binding.puzzleLibraryRow.visibility = v
+    }
+
+    private fun fmtMinutes(m: Int): String =
+        android.text.format.DateFormat.getTimeFormat(this).format(
+            java.util.Calendar.getInstance().apply { set(java.util.Calendar.HOUR_OF_DAY, m / 60); set(java.util.Calendar.MINUTE, m % 60) }.time
+        )
+
+    private fun refreshHoursRows() {
+        val on = Prefs.hoursEnabled(this)
+        binding.hoursSwitch.isChecked = on
+        binding.hoursRangeRow.visibility = if (on) android.view.View.VISIBLE else android.view.View.GONE
+        binding.hoursRangeValue.text =
+            getString(R.string.hours_range, fmtMinutes(Prefs.hoursStart(this)), fmtMinutes(Prefs.hoursEnd(this)))
+    }
+
+    private fun pickTime(titleRes: Int, minutes: Int, onPicked: (Int) -> Unit) {
+        val picker = com.google.android.material.timepicker.MaterialTimePicker.Builder()
+            .setTimeFormat(
+                if (android.text.format.DateFormat.is24HourFormat(this)) com.google.android.material.timepicker.TimeFormat.CLOCK_24H
+                else com.google.android.material.timepicker.TimeFormat.CLOCK_12H
+            )
+            .setHour(minutes / 60).setMinute(minutes % 60)
+            .setTitleText(titleRes)
+            .build()
+        picker.addOnPositiveButtonClickListener { onPicked(picker.hour * 60 + picker.minute) }
+        picker.show(supportFragmentManager, "hours")
     }
 
     private fun refreshLibraryRow() {
@@ -312,7 +360,7 @@ class MainActivity : AppCompatActivity() {
         binding.altAppsCount.text =
             if (altCount == 0) getString(R.string.alt_apps_none)
             else resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
-        binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
+        refreshPuzzleRows()
         binding.puzzleLevelValue.setText(Prefs.puzzleLevel(this).labelRes)
         refreshLibraryRow()
         binding.themeValue.setText(Prefs.theme(this).labelRes)

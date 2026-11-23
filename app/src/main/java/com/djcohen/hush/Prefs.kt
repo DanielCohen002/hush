@@ -17,11 +17,15 @@ object Prefs {
     private const val KEY_SHOW_TIMER = "show_timer"
     private const val KEY_ALLOW_MIN = "allow_minutes"
     private const val KEY_PAUSE_AGAIN = "pause_again"
+    private const val KEY_HOURS_ON = "hours_enabled"
+    private const val KEY_HOURS_START = "hours_start_min"
+    private const val KEY_HOURS_END = "hours_end_min"
     private const val KEY_STAT_PKGS = "stat_packages"
     private const val KEY_BREATH_STYLE = "breath_style"
     private const val KEY_ALT_PKGS = "alt_packages"
     private const val KEY_PUZZLE = "puzzle_enabled"
     private const val KEY_PUZZLE_TYPE = "puzzle_type"
+    private const val KEY_PUZZLE_TYPES = "puzzle_types"
     private const val KEY_THEME = "app_theme"
     private const val KEY_PUZZLE_LEVEL = "puzzle_level"
     private const val KEY_PUZZLE_IDX = "puzzle_idx_"
@@ -136,6 +140,26 @@ object Prefs {
         sp(c).edit().putBoolean(KEY_PAUSE_AGAIN, on).apply()
     }
 
+    /** Only pause between [hoursStart] and [hoursEnd] (minutes after midnight; a range that
+     *  ends earlier than it starts runs overnight). Off means pause at any hour. */
+    fun hoursEnabled(c: Context): Boolean = sp(c).getBoolean(KEY_HOURS_ON, false)
+    fun setHoursEnabled(c: Context, on: Boolean) { sp(c).edit().putBoolean(KEY_HOURS_ON, on).apply() }
+    fun hoursStart(c: Context): Int = sp(c).getInt(KEY_HOURS_START, 21 * 60)
+    fun hoursEnd(c: Context): Int = sp(c).getInt(KEY_HOURS_END, 7 * 60)
+    fun setHours(c: Context, start: Int, end: Int) {
+        sp(c).edit().putInt(KEY_HOURS_START, start).putInt(KEY_HOURS_END, end).apply()
+    }
+
+    /** True when pausing applies right now: always, unless the hours option limits it. */
+    fun withinPauseHours(c: Context): Boolean {
+        if (!hoursEnabled(c)) return true
+        val s = hoursStart(c)
+        val e = hoursEnd(c)
+        if (s == e) return true
+        val now = java.util.Calendar.getInstance().let { it.get(java.util.Calendar.HOUR_OF_DAY) * 60 + it.get(java.util.Calendar.MINUTE) }
+        return if (s < e) now in s until e else now >= s || now < e
+    }
+
     /** Which breathing animation the pause screen uses; see [BreathStyle]. */
     fun breathStyle(c: Context): BreathStyle =
         BreathStyle.fromId(sp(c).getString(KEY_BREATH_STYLE, null))
@@ -144,12 +168,8 @@ object Prefs {
         sp(c).edit().putString(KEY_BREATH_STYLE, style.id).apply()
     }
 
-    /** Whether the pause screen offers a small puzzle to do while waiting. */
-    fun puzzleEnabled(c: Context): Boolean = sp(c).getBoolean(KEY_PUZZLE, true)
-
-    fun setPuzzleEnabled(c: Context, on: Boolean) {
-        sp(c).edit().putBoolean(KEY_PUZZLE, on).apply()
-    }
+    /** Whether the pause screen offers a puzzle: true when at least one puzzle type is on. */
+    fun puzzleEnabled(c: Context): Boolean = puzzleTypes(c).isNotEmpty()
 
     /** Apps the user chose to offer on the pause screen as something better to open instead.
      *  Empty until they pick some. */
@@ -179,10 +199,21 @@ object Prefs {
         sp(c).edit().putString(KEY_THEME, theme.id).apply()
     }
 
-    fun puzzleType(c: Context): PuzzleType = PuzzleType.fromId(sp(c).getString(KEY_PUZZLE_TYPE, null))
+    /** The puzzle types switched on; none means no puzzle option at all. Settings saved before
+     *  the toggles existed (an on/off switch plus one type, or "mix") are carried over. */
+    fun puzzleTypes(c: Context): Set<PuzzleType> {
+        val p = sp(c)
+        val saved = p.getStringSet(KEY_PUZZLE_TYPES, null)
+        if (saved != null) return PuzzleType.selectable.filter { it.id in saved }.toSet()
+        if (!p.getBoolean(KEY_PUZZLE, true)) return emptySet()
+        return when (val old = PuzzleType.fromId(p.getString(KEY_PUZZLE_TYPE, null))) {
+            PuzzleType.MIX -> PuzzleType.selectable.toSet()
+            else -> setOf(old)
+        }
+    }
 
-    fun setPuzzleType(c: Context, type: PuzzleType) {
-        sp(c).edit().putString(KEY_PUZZLE_TYPE, type.id).apply()
+    fun setPuzzleTypes(c: Context, types: Set<PuzzleType>) {
+        sp(c).edit().putStringSet(KEY_PUZZLE_TYPES, types.map { it.id }.toSet()).apply()
     }
 
     /** Index of the next unseen puzzle in [pack]'s bundled list. Starts at a random spot on

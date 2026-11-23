@@ -13,6 +13,9 @@ enum class PuzzleType(val id: String, val labelRes: Int) {
 
     companion object {
         fun fromId(id: String?): PuzzleType = values().firstOrNull { it.id == id } ?: SUDOKU
+
+        /** The types shown as toggles ([MIX] is only the old combined setting). */
+        val selectable = listOf(SUDOKU, WORDSEARCH, CROSSWORD)
     }
 }
 

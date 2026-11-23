@@ -62,14 +62,55 @@ class InterventionOverlay(
     private val holdMedia = pausedPackage.contains("youtube") && !pausedPackage.contains("music")
     private var pausedMedia = false
     private val mediaHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    // A pause key alone only works when the media key reaches the right session at the right
+    // moment, which is why the old hold missed sometimes. Also take audio focus: a player that
+    // loses focus pauses itself, with no routing involved. Focus is requested again whenever
+    // playback is seen, because the app can grab it back when it starts late.
+    private val focusListener = android.media.AudioManager.OnAudioFocusChangeListener { }
+    private var focusRequest: android.media.AudioFocusRequest? = null
+
+    private fun takeFocus() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val req = focusRequest ?: android.media.AudioFocusRequest.Builder(android.media.AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(
+                    android.media.AudioAttributes.Builder()
+                        .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                .setOnAudioFocusChangeListener(focusListener, mediaHandler)
+                .build()
+                .also { focusRequest = it }
+            audio.requestAudioFocus(req)
+        } else {
+            @Suppress("DEPRECATION")
+            audio.requestAudioFocus(focusListener, android.media.AudioManager.STREAM_MUSIC, android.media.AudioManager.AUDIOFOCUS_GAIN)
+        }
+    }
+
+    private fun dropFocus() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            focusRequest?.let { audio.abandonAudioFocusRequest(it) }
+            focusRequest = null
+        } else {
+            @Suppress("DEPRECATION")
+            audio.abandonAudioFocus(focusListener)
+        }
+    }
+
+    private var holdTicks = 0
     private val mediaHold = object : Runnable {
         override fun run() {
             if (removed || dismissing) return
             if (audio.isMusicActive) {
+                takeFocus()
                 sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
                 pausedMedia = true
+            } else if (holdTicks++ % 5 == 0) {
+                // Not playing right now; keep focus anyway so a late start yields to us.
+                takeFocus()
             }
-            mediaHandler.postDelayed(this, 400)
+            mediaHandler.postDelayed(this, 250)
         }
     }
 
@@ -80,6 +121,7 @@ class InterventionOverlay(
 
     private fun stopMediaHold(resume: Boolean) {
         mediaHandler.removeCallbacks(mediaHold)
+        if (holdMedia) dropFocus()
         if (resume && pausedMedia) sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
         pausedMedia = false
     }
@@ -92,7 +134,7 @@ class InterventionOverlay(
     private var puzzle: Any? = null
 
     private fun showPuzzle() {
-        val p = puzzle ?: PuzzleLibrary.next(service, PuzzleLibrary.concrete(Prefs.puzzleType(service)))
+        val p = puzzle ?: PuzzleLibrary.next(service, Prefs.puzzleTypes(service).random())
             .also { puzzle = it }
         binding.puzzleView.show(p) {
             puzzle = null

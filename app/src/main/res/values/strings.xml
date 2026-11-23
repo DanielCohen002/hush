@@ -48,7 +48,11 @@
     <string name="message_saved">Message saved</string>
     <string name="section_allow">After Open anyway</string>
     <string name="allow_value">Skip the pause for %1$d min</string>
-    <string name="pause_again">Pause again when time is up (experimental)</string>
+    <string name="hours_option">Only pause during certain hours</string>
+    <string name="hours_range">Pausing from %1$s to %2$s (tap to change)</string>
+    <string name="hours_pick_start">Start pausing at</string>
+    <string name="hours_pick_end">Stop pausing at</string>
+    <string name="pause_again">Pause again when time is up</string>
 
     <string name="help">Explain this option</string>
     <string name="got_it">Got it</string>
@@ -96,14 +100,14 @@
     <string name="phase_in">Breathe in</string>
     <string name="phase_hold">Hold</string>
     <string name="phase_out">Breathe out</string>
-    <string name="puzzle_option">Offer a puzzle while waiting</string>
     <string name="overlay_puzzle">Play a puzzle</string>
     <string name="overlay_back_to_breathing">Back to breathing</string>
     <string name="puzzle_solved">Solved!</string>
     <string name="puzzle_tap_new">Tap for a new one</string>
     <string name="alt_apps_clear">Clear all</string>
     <string name="alt_apps_none">None chosen. Pick apps to offer on the pause screen.</string>
-    <string name="section_puzzle_type">Puzzle type</string>
+    <string name="section_puzzle_type">Puzzles</string>
+    <string name="puzzle_none">None (no puzzle option)</string>
     <string name="puzzle_sudoku">Mini sudoku</string>
     <string name="puzzle_wordsearch">Word search</string>
     <string name="puzzle_crossword">Mini crossword</string>

@@ -67,6 +67,9 @@ class AppMonitorService : AccessibilityService() {
     private var justLeftPackage: String? = null
     private var justLeftAt = 0L
 
+    /** A launcher window event arrived since the last settle check (kept across coalesced checks). */
+    private var sawLauncherEvent = false
+
     private val handler = Handler(Looper.getMainLooper())
     private var pendingCheck: Runnable? = null
     private val settleDelayMs = 250L
@@ -199,18 +202,27 @@ class AppMonitorService : AccessibilityService() {
         // sheets, permission dialogs, and invisible trampoline activities riding on a
         // continuing session, and a real switch to another app is confirmed at its own settle
         // and doesn't need the eager reset.
-        if (pkg != currentApp && pkg in launcherPackages()) {
-            currentApp = null
-        }
+        // But a launcher event alone is not proof: launchers also fire window events while the
+        // user is inside an app (gesture bar, recents peek, overlays), and resetting on those
+        // made the same app read as freshly opened, so the pause popped up mid-use. So the
+        // reset waits for the settle and only happens if the launcher really is on top then.
+        if (pkg != currentApp && pkg in launcherPackages()) sawLauncherEvent = true
 
         // Debounce, then confirm against the real active window.
-        postDelayedCheck { evaluateForeground() }
+        postDelayedCheck {
+            if (sawLauncherEvent) {
+                sawLauncherEvent = false
+                val top = topApplicationPackage()
+                if (top == null || top in launcherPackages()) currentApp = null
+            }
+            evaluateForeground()
+        }
     }
 
     /** Confirm the real foreground app and intervene if it's a newly-opened paused one. */
     private fun evaluateForeground(retriesLeft: Int = confirmRetries) {
         if (keyguard.isKeyguardLocked) return
-        if (!Prefs.globalEnabled(this)) return
+        if (!Prefs.globalEnabled(this) || !Prefs.withinPauseHours(this)) return
         val active = rootInActiveWindow?.packageName?.toString() ?: return
         if (isTransientWindow(active)) return // system UI, keyboard, our own overlay
         if (active == currentApp) {
@@ -370,7 +382,7 @@ class AppMonitorService : AccessibilityService() {
     /** [pkg]'s allow window has run out: show the pause again if the user is still in that app. */
     private fun onAllowExpired(pkg: String, retriesLeft: Int) {
         expiryRunnable = null
-        if (!Prefs.pauseAgainWhenAllowEnds(this) || !Prefs.globalEnabled(this)) return
+        if (!Prefs.pauseAgainWhenAllowEnds(this) || !Prefs.globalEnabled(this) || !Prefs.withinPauseHours(this)) return
         // The app can have been un-paused since this was armed: nothing clears allowedUntil, and
         // un-pausing doesn't cancel a pending check.
         if (!Prefs.isBlocked(this, pkg)) return
