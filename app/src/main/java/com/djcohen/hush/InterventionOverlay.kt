@@ -311,15 +311,16 @@ class InterventionOverlay(
      *  visible in the corner, whether or not the on-circle timer is turned on. */
     private fun updateCornerTimer() {
         val show = puzzleShown && !countdownDone
+        binding.topSlot.visibility = if (puzzleShown) View.VISIBLE else View.GONE
         binding.cornerTimer.visibility = if (show) View.VISIBLE else View.GONE
         if (show) binding.cornerTimer.text = remainingSeconds().toString()
         // Time's up with a puzzle open: "Open anyway" takes the timer's spot at the top, so
-        // there's no scrolling down for it (the bottom one is hidden then, not duplicated).
+        // there's no scrolling down for it (the bottom one stays invisible, holding its space).
         val proceedOnTop = puzzleShown && countdownDone
         binding.topOpenButton.visibility = if (proceedOnTop) View.VISIBLE else View.GONE
         binding.openButton.visibility = when {
             !countdownDone -> View.INVISIBLE
-            proceedOnTop -> View.GONE
+            proceedOnTop -> View.INVISIBLE // keep its space so nothing shifts when it swaps
             else -> View.VISIBLE
         }
     }
