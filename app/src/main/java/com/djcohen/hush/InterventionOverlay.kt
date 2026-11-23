@@ -56,6 +56,34 @@ class InterventionOverlay(
     private var puzzleShown = false
     private var hidden = false
 
+    // Keep YouTube from playing behind the pause: while it's up, pause any playback that
+    // starts, and resume only if we were the ones who paused it and the user proceeds.
+    private val audio = service.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+    private val holdMedia = pausedPackage.contains("youtube") && !pausedPackage.contains("music")
+    private var pausedMedia = false
+    private val mediaHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val mediaHold = object : Runnable {
+        override fun run() {
+            if (removed || dismissing) return
+            if (audio.isMusicActive) {
+                sendMediaKey(KeyEvent.KEYCODE_MEDIA_PAUSE)
+                pausedMedia = true
+            }
+            mediaHandler.postDelayed(this, 400)
+        }
+    }
+
+    private fun sendMediaKey(code: Int) {
+        audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, code))
+        audio.dispatchMediaKeyEvent(KeyEvent(KeyEvent.ACTION_UP, code))
+    }
+
+    private fun stopMediaHold(resume: Boolean) {
+        mediaHandler.removeCallbacks(mediaHold)
+        if (resume && pausedMedia) sendMediaKey(KeyEvent.KEYCODE_MEDIA_PLAY)
+        pausedMedia = false
+    }
+
     private val breathStyle = Prefs.breathStyle(service)
     private val puzzleEnabled = Prefs.puzzleEnabled(service)
 
@@ -86,6 +114,7 @@ class InterventionOverlay(
 
         inflateAndAttach()
         isShowing = true
+        if (holdMedia) mediaHandler.post(mediaHold)
 
         // Cover the screen instantly so the app behind isn't briefly visible; ease the
         // content in rather than sliding the whole panel up.
@@ -102,14 +131,31 @@ class InterventionOverlay(
         bindTexts()
         bindAlternatives()
 
-        binding.closeButton.setOnClickListener { dismiss(onClose) }
-        binding.openButton.setOnClickListener { dismiss(onOpenAnyway) }
+        binding.closeButton.setOnClickListener { dismiss(action = onClose) }
+        binding.openButton.setOnClickListener { dismiss(resumeMedia = true, action = onOpenAnyway) }
+        binding.topOpenButton.setOnClickListener { dismiss(resumeMedia = true, action = onOpenAnyway) }
+
+        // A swipe down from the top edge opens the notification shade (the overlay covers the
+        // status bar, so the system's own gesture can't reach it). The shade-hiding logic in the
+        // service then moves the pause out of the way.
+        var downY = 0f
+        var opened = false
+        binding.shadeGrabber.setOnTouchListener { _, ev ->
+            when (ev.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> { downY = ev.rawY; opened = false }
+                android.view.MotionEvent.ACTION_MOVE -> if (!opened && ev.rawY - downY > 40 * service.resources.displayMetrics.density) {
+                    opened = true
+                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
+                }
+            }
+            true
+        }
 
         // Let the overlay handle the back key as "not now".
         binding.root.isFocusableInTouchMode = true
         binding.root.setOnKeyListener { _, keyCode, ev ->
             if (keyCode == KeyEvent.KEYCODE_BACK && ev.action == KeyEvent.ACTION_UP) {
-                dismiss(onClose); true
+                dismiss(action = onClose); true
             } else false
         }
 
@@ -117,10 +163,8 @@ class InterventionOverlay(
         binding.puzzleButton.setOnClickListener { setPuzzleShown(!puzzleShown) }
         setPuzzleShown(puzzleShown)
 
-        if (countdownDone) {
-            binding.openButton.visibility = View.VISIBLE
-            binding.countdownText.text = "0"
-        }
+        if (countdownDone) binding.countdownText.text = "0"
+        updateCornerTimer()
         applyHidden()
 
         wm.addView(binding.root, params)
@@ -175,6 +219,7 @@ class InterventionOverlay(
         )
         binding.openButton.text =
             ctx.getString(if (isReminder) R.string.overlay_continue else R.string.overlay_open)
+        binding.topOpenButton.text = binding.openButton.text
         binding.closeButton.text =
             ctx.getString(if (isReminder) R.string.overlay_leave else R.string.overlay_close)
         binding.attemptsText.visibility = if (isReminder) View.GONE else View.VISIBLE
@@ -268,6 +313,15 @@ class InterventionOverlay(
         val show = puzzleShown && !countdownDone
         binding.cornerTimer.visibility = if (show) View.VISIBLE else View.GONE
         if (show) binding.cornerTimer.text = remainingSeconds().toString()
+        // Time's up with a puzzle open: "Open anyway" takes the timer's spot at the top, so
+        // there's no scrolling down for it (the bottom one is hidden then, not duplicated).
+        val proceedOnTop = puzzleShown && countdownDone
+        binding.topOpenButton.visibility = if (proceedOnTop) View.VISIBLE else View.GONE
+        binding.openButton.visibility = when {
+            !countdownDone -> View.INVISIBLE
+            proceedOnTop -> View.GONE
+            else -> View.VISIBLE
+        }
     }
 
     private fun remainingMs() = (endAt - SystemClock.elapsedRealtime()).coerceAtLeast(0)
@@ -299,17 +353,19 @@ class InterventionOverlay(
     }
 
     private fun revealButtons() {
+        updateCornerTimer()
+        if (binding.openButton.visibility != View.VISIBLE) return
         binding.openButton.alpha = 0f
-        binding.openButton.visibility = View.VISIBLE
         binding.openButton.animate().alpha(1f).setDuration(300).start()
     }
 
     /** Run [action] (onClose/onOpenAnyway/…) and start the dismiss animation, once only — the
      *  buttons and back key all stay live during the slide-out, so without this guard a fast
      *  double-tap would double-record stats. */
-    private fun dismiss(action: () -> Unit) {
+    private fun dismiss(resumeMedia: Boolean = false, action: () -> Unit) {
         if (dismissing) return
         dismissing = true
+        stopMediaHold(resumeMedia)
         action()
         slideOutAndRemove()
     }
@@ -329,6 +385,7 @@ class InterventionOverlay(
     fun dismissFade() {
         if (removed || dismissing) return
         dismissing = true
+        stopMediaHold(false)
         timer?.cancel()
         params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         try {
@@ -340,6 +397,7 @@ class InterventionOverlay(
 
     /** Remove immediately without animation (e.g. when the service is shutting down). */
     fun dismissNow() {
+        stopMediaHold(false)
         timer?.cancel()
         removeView()
     }

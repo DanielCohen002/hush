@@ -31,6 +31,14 @@ buttons: **Check for updates**, which asks GitHub for the latest release, and **
 (optional, puzzle data only, no code). Both run only when you tap them; there is no background
 networking.
 
+**Skip the Settings trip (optional).** Android won't let an app switch on its own accessibility
+service unless it has `WRITE_SECURE_SETTINGS`. Grant it once from a computer with the phone
+connected (USB debugging on), and Hush turns itself on whenever you open it:
+
+    adb shell pm grant com.djcohen.hush android.permission.WRITE_SECURE_SETTINGS
+
+Swiping down from the top edge of the pause screen opens the notification shade.
+
 > **Check your phone first.** Recent Android versions include this natively: Digital Wellbeing's app
 > timers and Focus mode, and Android 17's Pause Point (a built-in delay before selected apps, on Pixel
 > and Samsung). If your phone has those, prefer them. Hush is for older devices, custom ROMs, and

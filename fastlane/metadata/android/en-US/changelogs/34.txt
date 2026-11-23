@@ -1,0 +1,5 @@
+- Easy word searches now hide words diagonally too
+- When the puzzle timer ends, "Open anyway" appears at the top where the timer was
+- YouTube is held paused behind the pause screen until you proceed
+- Swipe down from the top edge of the pause screen to open the notification shade
+- Hush can switch on its own accessibility service once WRITE_SECURE_SETTINGS is granted (see README)

@@ -307,6 +307,7 @@ def main():
     ap.add_argument("--wordsearch", type=int, default=300)
     ap.add_argument("--crossword", type=int, default=250)
     ap.add_argument("--easy", type=int, default=300, help="count for each of the easy packs")
+    ap.add_argument("--only", default="", help="comma-separated pack names to rebuild (default: all)")
     ap.add_argument("--out", default=OUT, help="output directory (default: the app's bundled assets)")
     args = ap.parse_args()
     rnd = random.Random(args.seed)
@@ -316,12 +317,15 @@ def main():
         # Easy: 4x4 sudoku (2x2 boxes), about half the cells given.
         ("sudoku4", lambda n: sudoku_pack(n, rnd, N=4, BR=2, BC=2, blanks=(6, 8)), args.easy),
         ("wordsearch", lambda n: wordsearch_pack(n, rnd), args.wordsearch),
-        # Easy: 6x6 grid, 4 short common words, only left-to-right or top-to-bottom.
+        # Easy: 6x6 grid, 4 short common words, across, down and both diagonals.
         ("wordsearch6", lambda n: wordsearch_pack(n, rnd, size=6, count=4, lens=(3, 5),
-                                                   min_count=60, dirs=((0, 1), (1, 0))), args.easy),
+                                                   min_count=60, dirs=((0, 1), (1, 0), (1, 1), (-1, 1))), args.easy),
         ("crossword", lambda n: crossword_pack(n, rnd), args.crossword),
     )
+    only = {x for x in args.only.split(",") if x}
     for name, fn, n in packs:
+        if only and name not in only:
+            continue
         pack = fn(n)
         rnd.shuffle(pack)
         with open(os.path.join(args.out, name + ".json"), "w", encoding="utf-8", newline="\n") as f:

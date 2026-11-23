@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Only used when you tap "Check for updates" (asks GitHub for the latest release). -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,6 +8,11 @@
     <!-- Lets us ask the OS to stop battery-optimizing Hush, so the accessibility service isn't
          killed in the background and silently stops pausing apps. -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Optional. Granted once over adb (pm grant), it lets Hush switch its own accessibility
+         service on, so there is no trip into Settings after installing or updating. -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <!-- Needed on API 30+ to see other launchable apps so the user can pick which to pause. -->
     <queries>

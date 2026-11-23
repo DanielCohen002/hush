@@ -280,6 +280,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!isServiceEnabled()) enableServiceIfPermitted()
         val enabled = isServiceEnabled()
 
         binding.masterRow.isEnabled = enabled
@@ -392,6 +393,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateMasterSubtitle(on: Boolean) {
         binding.masterSubtitle.text = getString(if (on) R.string.master_on else R.string.master_off)
+    }
+
+    /** With WRITE_SECURE_SETTINGS (granted once over adb) Hush can turn its own accessibility
+     *  service on, so no trip into Settings is needed. Without it this quietly does nothing. */
+    private fun enableServiceIfPermitted() {
+        if (checkSelfPermission(android.Manifest.permission.WRITE_SECURE_SETTINGS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) return
+        try {
+            val me = ComponentName(this, AppMonitorService::class.java).flattenToString()
+            val cur = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            val next = if (cur.isNullOrEmpty()) me else "$cur:$me"
+            Settings.Secure.putString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, next)
+            Settings.Secure.putInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 1)
+        } catch (_: Exception) {
+        }
     }
 
     private fun isServiceEnabled(): Boolean {
