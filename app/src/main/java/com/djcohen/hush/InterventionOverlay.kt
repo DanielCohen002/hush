@@ -318,9 +318,11 @@ class InterventionOverlay(
         // there's no scrolling down for it (the bottom one stays invisible, holding its space).
         val proceedOnTop = puzzleShown && countdownDone
         binding.topOpenButton.visibility = if (proceedOnTop) View.VISIBLE else View.GONE
+        // With a puzzle open the top slot owns "Open anyway", so the bottom one takes no
+        // space at all (it would just leave a gap under the puzzle button).
         binding.openButton.visibility = when {
+            puzzleShown -> View.GONE
             !countdownDone -> View.INVISIBLE
-            proceedOnTop -> View.INVISIBLE // keep its space so nothing shifts when it swaps
             else -> View.VISIBLE
         }
     }

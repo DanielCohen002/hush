@@ -1,0 +1,1 @@
+- Removed the extra empty space under "Back to breathing" while a puzzle is open
