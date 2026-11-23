@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 /**
  * The breathing animations the pause screen can show. A style is a repeating list of

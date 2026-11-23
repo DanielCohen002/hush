@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 import android.content.Context
 import org.json.JSONObject

@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 import android.content.ComponentName
 import android.content.Intent
@@ -15,7 +15,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.dtsykunov.pause.databinding.ActivityMainBinding
+import com.djcohen.hush.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 

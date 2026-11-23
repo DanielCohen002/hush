@@ -64,7 +64,7 @@
                             android:layout_height="170dp"
                             android:layout_gravity="center">
 
-                            <com.dtsykunov.pause.BreathView
+                            <com.djcohen.hush.BreathView
                                 android:id="@+id/breathCircle"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent" />
@@ -80,7 +80,7 @@
                                 tools:text="8" />
                         </FrameLayout>
 
-                        <com.dtsykunov.pause.PuzzleHost
+                        <com.djcohen.hush.PuzzleHost
                             android:id="@+id/puzzleView"
                             android:layout_width="230dp"
                             android:layout_height="wrap_content"

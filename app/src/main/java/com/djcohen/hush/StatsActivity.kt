@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 import android.os.Bundle
 import android.view.Gravity
@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.dtsykunov.pause.databinding.ActivityStatsBinding
-import com.dtsykunov.pause.databinding.ItemStatBinding
+import com.djcohen.hush.databinding.ActivityStatsBinding
+import com.djcohen.hush.databinding.ItemStatBinding
 
 class StatsActivity : AppCompatActivity() {
 

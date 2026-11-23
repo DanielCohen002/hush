@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,7 +8,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.dtsykunov.pause.databinding.ActivityAppsBinding
+import com.djcohen.hush.databinding.ActivityAppsBinding
 import kotlin.concurrent.thread
 
 /**

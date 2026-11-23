@@ -26,9 +26,10 @@ When you launch a selected app, the screen is covered by a panel with a countdow
 finishes can you choose **Open anyway** or **Cancel**.
 
 It uses an Accessibility Service to detect app launches and an accessibility overlay to draw the pause
-screen, so it needs no "draw over other apps" permission. The only network use is the
-**Check for updates** button, which asks GitHub for the latest release when you tap it; there is no
-background networking.
+screen, so it needs no "draw over other apps" permission. The only network use is two
+buttons: **Check for updates**, which asks GitHub for the latest release, and **Download new puzzles**
+(optional, puzzle data only, no code). Both run only when you tap them; there is no background
+networking.
 
 > **Check your phone first.** Recent Android versions include this natively: Digital Wellbeing's app
 > timers and Focus mode, and Android 17's Pause Point (a built-in delay before selected apps, on Pixel

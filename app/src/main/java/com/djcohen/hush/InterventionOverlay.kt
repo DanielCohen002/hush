@@ -1,4 +1,4 @@
-package com.dtsykunov.pause
+package com.djcohen.hush
 
 import android.accessibilityservice.AccessibilityService
 import android.graphics.PixelFormat
@@ -10,8 +10,8 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
-import com.dtsykunov.pause.databinding.ItemAltAppBinding
-import com.dtsykunov.pause.databinding.OverlayInterventionBinding
+import com.djcohen.hush.databinding.ItemAltAppBinding
+import com.djcohen.hush.databinding.OverlayInterventionBinding
 import kotlin.math.ceil
 
 /**
