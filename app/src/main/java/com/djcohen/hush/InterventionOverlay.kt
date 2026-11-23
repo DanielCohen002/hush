@@ -132,7 +132,6 @@ class InterventionOverlay(
         bindAlternatives()
 
         binding.closeButton.setOnClickListener { dismiss(action = onClose) }
-        binding.openButton.setOnClickListener { dismiss(resumeMedia = true, action = onOpenAnyway) }
         binding.topOpenButton.setOnClickListener { dismiss(resumeMedia = true, action = onOpenAnyway) }
 
         // A swipe down from the top edge opens the notification shade (the overlay covers the
@@ -145,7 +144,7 @@ class InterventionOverlay(
                 android.view.MotionEvent.ACTION_DOWN -> { downY = ev.rawY; opened = false }
                 android.view.MotionEvent.ACTION_MOVE -> if (!opened && ev.rawY - downY > 40 * service.resources.displayMetrics.density) {
                     opened = true
-                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
+                    openShade()
                 }
             }
             true
@@ -168,6 +167,7 @@ class InterventionOverlay(
         applyHidden()
 
         wm.addView(binding.root, params)
+        addCatcher()
         binding.root.requestFocus()
         startBreathing()
     }
@@ -177,6 +177,7 @@ class InterventionOverlay(
         if (!isShowing || removed || dismissing) return
         timer?.cancel()
         binding.breathCircle.stop()
+        removeCatcher()
         try {
             wm.removeView(binding.root)
         } catch (_: Exception) {
@@ -188,14 +189,125 @@ class InterventionOverlay(
     /** Take the pause out of the way (and untouchable) while the notification shade is open,
      *  then bring it back. The shade is a system window that opens *behind* an accessibility
      *  overlay, so without this it would be visible-but-unusable. */
+    // A thin transparent window over the status bar. A pull-down that starts there would
+    // otherwise reach the system and open the shade invisibly behind the pause screen (this
+    // overlay starts below the status bar); here it opens the shade ourselves instead.
+    private var catcher: View? = null
+    private lateinit var catcherParams: WindowManager.LayoutParams
+
+    private fun addCatcher() {
+        removeCatcher()
+        val res = service.resources
+        val h = topBarHeightPx()
+        val v = View(service)
+        var downY = 0f
+        var opened = false
+        v.setOnTouchListener { _, ev ->
+            when (ev.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> { downY = ev.rawY; opened = false }
+                android.view.MotionEvent.ACTION_MOVE ->
+                    if (!opened && ev.rawY - downY > 24 * res.displayMetrics.density) {
+                        opened = true
+                        openShade()
+                    }
+            }
+            true
+        }
+        catcherParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            h,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            // IN_SCREEN + NO_LIMITS: sit over the status bar itself, not below it.
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT,
+        ).apply {
+            gravity = Gravity.TOP
+            // Notched / punch-hole phones: let the strip extend into the cutout area too.
+            if (android.os.Build.VERSION.SDK_INT >= 28) {
+                layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+        try {
+            wm.addView(v, catcherParams)
+            catcher = v
+        } catch (_: Exception) {
+        }
+    }
+
+    /** Height of whatever sits at the top of this phone's screen (status bar, cutout), so the
+     *  strip fits any device and orientation instead of assuming one fixed size. */
+    private fun topBarHeightPx(): Int {
+        val res = service.resources
+        val density = res.displayMetrics.density
+        var h = 0
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            try {
+                val insets = wm.currentWindowMetrics.windowInsets.getInsetsIgnoringVisibility(
+                    android.view.WindowInsets.Type.statusBars() or android.view.WindowInsets.Type.displayCutout()
+                )
+                h = insets.top
+            } catch (_: Exception) {
+            }
+        }
+        if (h <= 0) {
+            val id = res.getIdentifier("status_bar_height", "dimen", "android")
+            if (id > 0) h = res.getDimensionPixelSize(id)
+        }
+        // Never absurdly thin (some skins report 0 in landscape) or tall.
+        return h.coerceIn((24 * density).toInt(), (64 * density).toInt())
+    }
+
+    private fun removeCatcher() {
+        catcher?.let {
+            try {
+                wm.removeView(it)
+            } catch (_: Exception) {
+            }
+        }
+        catcher = null
+    }
+
     fun setHidden(hide: Boolean) {
         if (hidden == hide || removed) return
         hidden = hide
-        if (isShowing) applyHidden()
+        if (!isShowing) return
+        applyHidden()
+        // Pause screen is back on top; the cover screen can go once it has been drawn.
+        if (!hide) mediaHandler.postDelayed({ if (!hidden) CurtainActivity.close() }, 250)
+    }
+
+    /** Open the notification shade over a plain cover screen, so that closing it never shows
+     *  the paused app (starting an activity closes the shade, so the cover goes first). */
+    private fun openShade() {
+        CurtainActivity.show(service) {
+            service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
+        }
     }
 
     private fun applyHidden() {
-        binding.root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+        binding.root.animate().cancel()
+        if (hidden) {
+            binding.root.alpha = 1f
+            binding.root.visibility = View.INVISIBLE
+        } else {
+            // Come back instantly opaque so the paused app never shows through as the shade closes.
+            binding.root.alpha = 1f
+            binding.root.visibility = View.VISIBLE
+        }
+        catcher?.let { c ->
+            catcherParams.flags = if (hidden) {
+                catcherParams.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            } else {
+                catcherParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            }
+            try {
+                wm.updateViewLayout(c, catcherParams)
+            } catch (_: Exception) {
+            }
+        }
         params.flags = if (hidden) {
             params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         } else {
@@ -217,9 +329,8 @@ class InterventionOverlay(
             if (isReminder) R.string.overlay_still_using else R.string.overlay_opening,
             appLabel,
         )
-        binding.openButton.text =
+        binding.topOpenButton.text =
             ctx.getString(if (isReminder) R.string.overlay_continue else R.string.overlay_open)
-        binding.topOpenButton.text = binding.openButton.text
         binding.closeButton.text =
             ctx.getString(if (isReminder) R.string.overlay_leave else R.string.overlay_close)
         binding.attemptsText.visibility = if (isReminder) View.GONE else View.VISIBLE
@@ -311,20 +422,11 @@ class InterventionOverlay(
      *  visible in the corner, whether or not the on-circle timer is turned on. */
     private fun updateCornerTimer() {
         val show = puzzleShown && !countdownDone
-        binding.topSlot.visibility = if (puzzleShown) View.VISIBLE else View.GONE
         binding.cornerTimer.visibility = if (show) View.VISIBLE else View.GONE
         if (show) binding.cornerTimer.text = remainingSeconds().toString()
-        // Time's up with a puzzle open: "Open anyway" takes the timer's spot at the top, so
-        // there's no scrolling down for it (the bottom one stays invisible, holding its space).
-        val proceedOnTop = puzzleShown && countdownDone
-        binding.topOpenButton.visibility = if (proceedOnTop) View.VISIBLE else View.GONE
-        // With a puzzle open the top slot owns "Open anyway", so the bottom one takes no
-        // space at all (it would just leave a gap under the puzzle button).
-        binding.openButton.visibility = when {
-            puzzleShown -> View.GONE
-            !countdownDone -> View.INVISIBLE
-            else -> View.VISIBLE
-        }
+        // "Open anyway" lives in the same top slot as the timer chip in every mode, invisible
+        // (but holding its space) until time's up, so nothing shifts when it appears.
+        binding.topOpenButton.visibility = if (countdownDone) View.VISIBLE else View.INVISIBLE
     }
 
     private fun remainingMs() = (endAt - SystemClock.elapsedRealtime()).coerceAtLeast(0)
@@ -357,9 +459,8 @@ class InterventionOverlay(
 
     private fun revealButtons() {
         updateCornerTimer()
-        if (binding.openButton.visibility != View.VISIBLE) return
-        binding.openButton.alpha = 0f
-        binding.openButton.animate().alpha(1f).setDuration(300).start()
+        binding.topOpenButton.alpha = 0f
+        binding.topOpenButton.animate().alpha(1f).setDuration(300).start()
     }
 
     /** Run [action] (onClose/onOpenAnyway/…) and start the dismiss animation, once only — the
@@ -409,6 +510,8 @@ class InterventionOverlay(
         if (removed) return
         removed = true
         isShowing = false
+        CurtainActivity.close()
+        removeCatcher()
         binding.breathCircle.stop()
         try {
             wm.removeView(binding.root)

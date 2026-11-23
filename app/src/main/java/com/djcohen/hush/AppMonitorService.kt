@@ -150,7 +150,8 @@ class AppMonitorService : AccessibilityService() {
             // and untouchable) while the shade is open and bring it back once it closes. If the
             // user taps a notification instead, that's a navigation to another app, which the
             // checks below confirm and handle like any other leave.
-            if (isShadeOpen()) {
+            if (isShadeOpen() && !shadeClosing) {
+                shadeMax = shadeHeightFraction()
                 overlay?.setHidden(true)
                 watchShade()
                 return
@@ -421,13 +422,23 @@ class AppMonitorService : AccessibilityService() {
      * are the thin status and navigation bars, so a tall one means the shade is open. (Reading the
      * window list needs FLAG_RETRIEVE_INTERACTIVE_WINDOWS in the service config.)
      */
-    private fun isShadeOpen(): Boolean {
-        val screenH = resources.displayMetrics.heightPixels
+    private fun isShadeOpen(): Boolean = shadeHeightFraction() >= 0.6f
+
+    /** Height of the notification shade as a fraction of the screen (0 when it isn't there). */
+    private fun shadeHeightFraction(): Float {
+        val screenH = resources.displayMetrics.heightPixels.toFloat()
         val bounds = Rect()
-        return windows?.any { w ->
-            w.type == AccessibilityWindowInfo.TYPE_SYSTEM &&
-                run { w.getBoundsInScreen(bounds); bounds.height() >= screenH * 0.6 }
-        } == true
+        var best = 0f
+        windows?.forEach { w ->
+            // Not our own full-screen overlay. The shade may be reported as a system window or
+            // only identifiable as a SystemUI one, depending on the phone, so accept either.
+            if (w.type == AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY) return@forEach
+            if (w.type == AccessibilityWindowInfo.TYPE_SYSTEM || w.root?.packageName == "com.android.systemui") {
+                w.getBoundsInScreen(bounds)
+                best = maxOf(best, bounds.height() / screenH)
+            }
+        }
+        return best
     }
 
     private fun showOverlay(
@@ -483,7 +494,12 @@ class AppMonitorService : AccessibilityService() {
                     }
                 }
             }
-        ).also { it.show() }
+        ).also {
+            it.show()
+            shadeClosing = false
+            handler.removeCallbacks(shadeStartWatch)
+            handler.postDelayed(shadeStartWatch, 80)
+        }
     }
 
     /** Count only the forced pause time, never the deliberation after "Open anyway" appears. */
@@ -516,14 +532,39 @@ class AppMonitorService : AccessibilityService() {
         pendingCheck = null
     }
 
+    // Shade handling. Hide the pause once the shade is open, and bring it back the instant the
+    // shade starts closing (not after it is gone), so the paused app never shows through.
+    private var shadeMax = 0f
+    private var shadeClosing = false // receded already; stay visible until it is fully shut
+
+    /** While a pause is up, notice the shade opening even when no accessibility event says so. */
+    private val shadeStartWatch = object : Runnable {
+        override fun run() {
+            val o = overlay
+            if (o == null || !o.isShowing) return
+            val f = shadeHeightFraction()
+            if (shadeClosing) {
+                if (f < 0.15f) shadeClosing = false
+            } else if (f >= 0.6f) {
+                shadeMax = f
+                o.setHidden(true)
+                watchShade()
+            }
+            handler.postDelayed(this, 80)
+        }
+    }
+
     private val shadeWatch = object : Runnable {
         override fun run() {
             val o = overlay
             if (o == null || !o.isShowing) return
-            if (isShadeOpen()) {
-                handler.postDelayed(this, 250)
-            } else {
+            val f = shadeHeightFraction()
+            shadeMax = maxOf(shadeMax, f)
+            if (f < 0.05f || f < shadeMax - 0.08f) {
+                shadeClosing = f >= 0.15f
                 o.setHidden(false)
+            } else {
+                handler.postDelayed(this, 30)
             }
         }
     }
@@ -531,7 +572,7 @@ class AppMonitorService : AccessibilityService() {
     /** Poll until the shade closes: closing it produces no event we can rely on. */
     private fun watchShade() {
         handler.removeCallbacks(shadeWatch)
-        handler.postDelayed(shadeWatch, 250)
+        handler.postDelayed(shadeWatch, 30)
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {

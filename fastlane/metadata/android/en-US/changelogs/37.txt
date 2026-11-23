@@ -1,0 +1,2 @@
+- "Open anyway" is now a larger button in the top slot in both views, with tighter spacing above the puzzle and above Cancel
+- Pulling down the notification shade works again, from the status bar or just below it, and the paused app no longer flashes when you close it

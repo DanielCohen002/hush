@@ -40,6 +40,14 @@
         </activity>
 
         <activity
+            android:name=".CurtainActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.Hush" />
+
+        <activity
             android:name=".StatsActivity"
             android:exported="false" />
 
