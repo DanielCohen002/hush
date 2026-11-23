@@ -156,6 +156,9 @@ class AppMonitorService : AccessibilityService() {
                 watchShade()
                 return
             }
+            // The cover screen behind the shade (and its closing) flashes the launcher; that is
+            // not the user leaving.
+            if (CurtainActivity.recentlyActive()) return
             // A move to any real window other than the paused app (home, recents, another app)
             // may mean the user navigated away with a system gesture. But raw events are noisy
             // exactly while the paused app is still launching (launcher transitions, permission
@@ -313,6 +316,7 @@ class AppMonitorService : AccessibilityService() {
 
     /** True when the window stack shows a real app other than the paused one on top. */
     private fun navigatedAway(): Boolean {
+        if (CurtainActivity.recentlyActive()) return false
         val top = topApplicationPackage() ?: return false
         return !isTransientWindow(top) && top != currentApp
     }

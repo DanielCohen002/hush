@@ -1,0 +1,1 @@
+- No more flash at the top of the screen when you close the notification shade over the pause screen

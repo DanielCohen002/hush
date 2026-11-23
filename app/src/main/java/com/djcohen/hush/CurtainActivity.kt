@@ -18,13 +18,22 @@ class CurtainActivity : Activity() {
         super.onCreate(savedInstanceState)
         val night = themeColor(R.attr.pNight)
         window.setBackgroundDrawable(ColorDrawable(night))
+        // The pause screen sits *below* the status bar, which is plain black there. Match that
+        // exactly (black, light icons) so nothing visibly changes up top as the shade closes.
         @Suppress("DEPRECATION")
-        window.statusBarColor = night
+        window.statusBarColor = android.graphics.Color.BLACK
+        try {
+            androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                .isAppearanceLightStatusBars = false
+        } catch (_: Exception) {
+            // purely cosmetic: never let it take the screen down
+        }
         @Suppress("DEPRECATION")
         window.navigationBarColor = night
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
         instance = this
+        lastActiveAt = android.os.SystemClock.elapsedRealtime()
     }
 
     override fun onResume() {
@@ -46,11 +55,18 @@ class CurtainActivity : Activity() {
 
     override fun onDestroy() {
         if (instance === this) instance = null
+        lastActiveAt = android.os.SystemClock.elapsedRealtime()
         super.onDestroy()
     }
 
     companion object {
         private var instance: CurtainActivity? = null
+        private var lastActiveAt = 0L
+
+        /** True while the cover screen is up and for a moment after it goes. Its opening and
+         *  closing briefly bring the launcher forward, which must not read as "user left". */
+        fun recentlyActive(): Boolean =
+            instance != null || android.os.SystemClock.elapsedRealtime() - lastActiveAt < 1500
         private var onShown: (() -> Unit)? = null
 
         /** Show the curtain; [shown] runs once it is on screen. */
@@ -72,6 +88,7 @@ class CurtainActivity : Activity() {
         }
 
         fun close() {
+            lastActiveAt = android.os.SystemClock.elapsedRealtime()
             onShown = null
             instance?.finish()
             instance = null
