@@ -1,4 +1,4 @@
-Pause adds a short, timed pause before you open the apps you choose. When you launch a selected app, the screen is covered by a panel with a countdown. Only after it finishes can you choose Open anyway or Cancel. It turns an automatic tap into a deliberate choice. It is friction, not a hard block.
+Hush adds a short, timed pause before you open the apps you choose. When you launch a selected app, the screen is covered by a panel with a countdown. Only after it finishes can you choose Open anyway or Cancel. It turns an automatic tap into a deliberate choice. It is friction, not a hard block.
 
 The pause screen also shows how many times you have opened that app in the last 24 hours and when you last opened it.
 
@@ -13,8 +13,8 @@ Features:
 
 How it works:
 
-Pause uses an Accessibility Service to detect when a chosen app opens and an accessibility overlay to draw the pause screen, so it needs no "draw over other apps" permission. An accessibility-based gate is best-effort, not a hard block: it is meant to make impulsive opens deliberate, not to be tamper-proof.
+Hush uses an Accessibility Service to detect when a chosen app opens and an accessibility overlay to draw the pause screen, so it needs no "draw over other apps" permission. An accessibility-based gate is best-effort, not a hard block: it is meant to make impulsive opens deliberate, not to be tamper-proof.
 
 Check your phone first:
 
-Recent Android versions may already do this. Android 17's Pause Point adds a built-in delay before selected apps on some Pixel and Samsung phones, and Digital Wellbeing offers app timers and Focus mode. If your phone has those, prefer them. Pause is for older devices, custom ROMs, and phones that ship without Google's Digital Wellbeing.
+Recent Android versions may already do this. Android 17's Pause Point adds a built-in delay before selected apps on some Pixel and Samsung phones, and Digital Wellbeing offers app timers and Focus mode. If your phone has those, prefer them. Hush is for older devices, custom ROMs, and phones that ship without Google's Digital Wellbeing.

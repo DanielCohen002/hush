@@ -32,7 +32,7 @@ background networking.
 
 > **Check your phone first.** Recent Android versions include this natively: Digital Wellbeing's app
 > timers and Focus mode, and Android 17's Pause Point (a built-in delay before selected apps, on Pixel
-> and Samsung). If your phone has those, prefer them. Pause is for older devices, custom ROMs, and
+> and Samsung). If your phone has those, prefer them. Hush is for older devices, custom ROMs, and
 > phones that ship without Google's Digital Wellbeing.
 
 ## Build
@@ -54,8 +54,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## Set up on the phone
 
-1. Open **Pause**.
-2. Tap **Enable accessibility access** and turn on "Pause monitor" in the system settings.
+1. Open **Hush**.
+2. Tap **Enable accessibility access** and turn on "Hush monitor" in the system settings.
    (On some phones this lives under *Settings → Accessibility → Installed apps*.)
 3. Back in the app, set the **pause length** and choose the apps you want to gate.
 

@@ -296,7 +296,7 @@ class MainActivity : AppCompatActivity() {
         binding.accessButton.visibility = if (enabled) View.GONE else View.VISIBLE
         applyStatusCard(binding.accessCard, binding.statusText, enabled)
 
-        // Background-kill mitigation: if Pause isn't battery-optimization exempt the OS can kill
+        // Background-kill mitigation: if Hush isn't battery-optimization exempt the OS can kill
         // the accessibility service and it silently stops pausing apps until re-toggled.
         val exempt = isIgnoringBatteryOptimizations()
         binding.batteryStatusText.text =
@@ -335,7 +335,7 @@ class MainActivity : AppCompatActivity() {
         return pm.isIgnoringBatteryOptimizations(packageName)
     }
 
-    /** Ask the OS to stop battery-optimizing Pause. The direct dialog needs the
+    /** Ask the OS to stop battery-optimizing Hush. The direct dialog needs the
      *  REQUEST_IGNORE_BATTERY_OPTIMIZATIONS permission; fall back to the settings list otherwise. */
     private fun requestBatteryExemption() {
         try {
