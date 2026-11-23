@@ -25,7 +25,7 @@ class WordSearchView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
-    private val n = 8
+    private var n = 8
     private var grid = ""
     private var words = emptyList<String>()
     private val found = HashSet<String>()
@@ -56,12 +56,14 @@ class WordSearchView @JvmOverloads constructor(
 
     fun load(puzzle: PuzzleLibrary.WordSearch, onSolved: () -> Unit) {
         grid = puzzle.grid
+        n = Math.round(Math.sqrt(puzzle.grid.length.toDouble())).toInt()
         words = puzzle.words
         found.clear()
         foundPaths.clear()
         startCell = -1
         solvedAt = 0
         this.onSolved = onSolved
+        requestLayout()
         invalidate()
     }
 

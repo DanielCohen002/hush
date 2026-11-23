@@ -18,7 +18,9 @@ class MiniSudokuView @JvmOverloads constructor(
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
-    private val n = 6
+    private var n = 6
+    private var boxR = 2
+    private var boxC = 3
     private var given = IntArray(n * n)
     private var solution = IntArray(n * n)
     private var cells = IntArray(n * n)
@@ -40,6 +42,9 @@ class MiniSudokuView @JvmOverloads constructor(
 
     /** [onSolved] is called when the board is completed, to let the host offer a new puzzle. */
     fun load(puzzle: PuzzleLibrary.Sudoku, onSolved: () -> Unit) {
+        n = Math.round(Math.sqrt(puzzle.given.size.toDouble())).toInt()
+        boxR = 2
+        boxC = n / 2 // 4x4 has 2x2 boxes, 6x6 has 2x3
         given = puzzle.given
         solution = puzzle.solution
         cells = given.copyOf()
@@ -47,6 +52,7 @@ class MiniSudokuView @JvmOverloads constructor(
         solved = false
         solvedAt = 0L
         this.onSolved = onSolved
+        requestLayout()
         invalidate()
     }
 
@@ -76,13 +82,13 @@ class MiniSudokuView @JvmOverloads constructor(
 
         // Grid lines: thin per cell, thick on box borders (boxes are 2 rows x 3 columns).
         for (i in 0..n) {
-            val thick = i % 3 == 0
+            val thick = i % boxC == 0
             line.color = if (thick) ink else dim
             line.strokeWidth = (if (thick) 2f else 1f) * d
             canvas.drawLine(i * s, 0f, i * s, w, line)
         }
         for (i in 0..n) {
-            val thick = i % 2 == 0
+            val thick = i % boxR == 0
             line.color = if (thick) ink else dim
             line.strokeWidth = (if (thick) 2f else 1f) * d
             canvas.drawLine(0f, i * s, w, i * s, line)

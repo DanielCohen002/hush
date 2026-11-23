@@ -23,7 +23,7 @@ object Prefs {
     private const val KEY_PUZZLE = "puzzle_enabled"
     private const val KEY_PUZZLE_TYPE = "puzzle_type"
     private const val KEY_THEME = "app_theme"
-    private const val KEY_PUZZLE_SIZE = "puzzle_size"
+    private const val KEY_PUZZLE_LEVEL = "puzzle_level"
     private const val KEY_PUZZLE_IDX = "puzzle_idx_"
     private const val STAT_INTERRUPTIONS = "si_"
     private const val STAT_OPENS = "so_"
@@ -160,16 +160,16 @@ object Prefs {
         sp(c).edit().putStringSet(KEY_ALT_PKGS, pkgs).apply()
     }
 
-    fun puzzleSize(c: Context): PuzzleSize = PuzzleSize.fromId(sp(c).getString(KEY_PUZZLE_SIZE, null))
+    fun puzzleLevel(c: Context): PuzzleLevel = PuzzleLevel.fromId(sp(c).getString(KEY_PUZZLE_LEVEL, null))
 
-    fun setPuzzleSize(c: Context, size: PuzzleSize) {
-        sp(c).edit().putString(KEY_PUZZLE_SIZE, size.id).apply()
+    fun setPuzzleLevel(c: Context, level: PuzzleLevel) {
+        sp(c).edit().putString(KEY_PUZZLE_LEVEL, level.id).apply()
     }
 
     /** Forget which puzzles have been seen, so the next ones start from a fresh random spot. */
     fun resetPuzzleProgress(c: Context) {
         val e = sp(c).edit()
-        for (name in listOf("sudoku", "wordsearch", "crossword")) e.remove(KEY_PUZZLE_IDX + name)
+        for (name in listOf("sudoku", "sudoku4", "wordsearch", "wordsearch6", "crossword")) e.remove(KEY_PUZZLE_IDX + name)
         e.apply()
     }
 

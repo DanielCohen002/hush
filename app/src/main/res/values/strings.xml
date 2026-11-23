@@ -112,9 +112,9 @@
     <string name="theme_teal">Seafoam</string>
     <string name="theme_lavender">Lavender (original)</string>
     <string name="theme_ember">Ember (default)</string>
-    <string name="section_puzzle_size">Puzzle size</string>
-    <string name="size_small">Small (default)</string>
-    <string name="size_large">Large</string>
+    <string name="section_puzzle_level">Puzzle difficulty</string>
+    <string name="level_easy">Easy (default): fewer cells and words</string>
+    <string name="level_standard">Standard: the full-size puzzles</string>
     <string name="crossword_hint">Hint</string>
     <string name="crossword_reveal">Reveal word</string>
     <string name="check_updates">Check for updates</string>

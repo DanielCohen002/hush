@@ -63,8 +63,7 @@ def clue_for(word, definition):
     return first[0].upper() + first[1:]
 
 
-def sudoku_pack(n, rnd):
-    N, BR, BC = 6, 2, 3
+def sudoku_pack(n, rnd, N=6, BR=2, BC=3, blanks=(16, 20)):
 
     def can(g, pos, v):
         r, c = divmod(pos, N)
@@ -103,14 +102,15 @@ def sudoku_pack(n, rnd):
 
     out, seen = [], set()
     while len(out) < n:
-        sol = [0] * 36
+        sol = [0] * (N * N)
         fill(sol)
         given = sol[:]
-        order = list(range(36))
+        order = list(range(N * N))
         rnd.shuffle(order)
         removed = 0
+        target = rnd.randint(*blanks)
         for cell in order:
-            if removed >= rnd.randint(16, 20):
+            if removed >= target:
                 break
             keep, given[cell] = given[cell], 0
             if count(given[:], 2) == 1:
@@ -124,13 +124,14 @@ def sudoku_pack(n, rnd):
     return out
 
 
-def wordsearch_pack(n, rnd):
-    words, _ = common_words(4, 6, 20)
+def wordsearch_pack(n, rnd, size=8, count=6, lens=(4, 6), min_count=20,
+                    dirs=((0, 1), (1, 0), (1, 1), (-1, 1))):
+    """dirs: (row step, col step); the default is right, down, down-right, up-right."""
+    words, _ = common_words(lens[0], lens[1], min_count)
     words = sorted(words)
-    dirs = [(0, 1), (1, 0), (1, 1), (-1, 1)]  # right, down, down-right, up-right
-    size, out, seen = 8, [], set()
+    out, seen = [], set()
     while len(out) < n:
-        picks = rnd.sample(words, 6)
+        picks = rnd.sample(words, count)
         grid = [[""] * size for _ in range(size)]
         placed = []
         for w in picks:
@@ -146,7 +147,7 @@ def wordsearch_pack(n, rnd):
                         grid[a][b] = w[i]
                     placed.append(w)
                     break
-        if len(placed) < 6:
+        if len(placed) < count:
             continue
         letters = "etaoinsrhlcdumfpgwybvk"
         flat = "".join(ch or rnd.choice(letters) for row in grid for ch in row)
@@ -157,41 +158,145 @@ def wordsearch_pack(n, rnd):
     return out
 
 
+# 5x5 block patterns ("#" = black). Every white cell must sit in a word of 3+ letters, no run
+# of exactly 2, and the whites must be connected; validated below.
+TEMPLATES = [
+    [".....", ".#.#.", ".....", ".#.#.", "....."],   # lattice: 3 across x 3 down
+    [".....", ".###.", ".###.", ".###.", "....."],   # frame: a ring of four words
+    [".###.", ".###.", ".....", ".###.", ".###."],   # H: two posts and a bar
+    [".....", ".####", ".....", ".####", "....."],   # comb: spine and three teeth
+    [".....", "####.", ".....", ".####", "....."],   # snake: an S through the grid
+    [".....", ".###.", ".###.", ".###.", "#...."],   # frame with one corner cut
+]
+
+
+def slots_of(tpl):
+    """(across, down) slots as lists of (row, col), in reading order of their first cell."""
+    h, w = len(tpl), len(tpl[0])
+    across, down = [], []
+    for r in range(h):
+        run = []
+        for c in range(w + 1):
+            if c < w and tpl[r][c] != "#":
+                run.append((r, c))
+            else:
+                if len(run) >= 3:
+                    across.append(run)
+                run = []
+    for c in range(w):
+        run = []
+        for r in range(h + 1):
+            if r < h and tpl[r][c] != "#":
+                run.append((r, c))
+            else:
+                if len(run) >= 3:
+                    down.append(run)
+                run = []
+    across.sort(key=lambda sl: sl[0])
+    down.sort(key=lambda sl: sl[0])
+    return across, down
+
+
+def valid_template(tpl):
+    h, w = len(tpl), len(tpl[0])
+    whites = {(r, c) for r in range(h) for c in range(w) if tpl[r][c] != "#"}
+    across, down = slots_of(tpl)
+    covered = {cell for sl in across + down for cell in sl}
+    if covered != whites:
+        return False
+    # no run of exactly 2 in either direction
+    for lines in ([[tpl[r][c] for c in range(w)] for r in range(h)],
+                  [[tpl[r][c] for r in range(h)] for c in range(w)]):
+        for line in lines:
+            for run in "".join(line).split("#"):
+                if len(run) == 2:
+                    return False
+    seen, stack = set(), [next(iter(whites))]
+    while stack:
+        cur = stack.pop()
+        if cur in seen:
+            continue
+        seen.add(cur)
+        r, c = cur
+        stack += [x for x in ((r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)) if x in whites]
+    return seen == whites
+
+
 def crossword_pack(n, rnd):
-    """5x5 lattice: rows 0,2,4 across and columns 0,2,4 down are 5-letter words; (odd, odd)
-    cells are black. Six words, nine crossings."""
-    words, gloss = common_words(5, 5, 8)
-    clues = {w: clue_for(w, gloss[w][1]) for w in words}
-    words = sorted(w for w in words if clues[w])
-    by_triple = {}
-    for w in words:
-        by_triple.setdefault((w[0], w[2], w[4]), []).append(w)
+    """Mini crosswords on several different 5x5 block patterns (TEMPLATES), filled from
+    WordNet words with a dictionary-definition clue each."""
+    w45, g45 = common_words(4, 5, 8)
+    w3, g3 = common_words(3, 3, 30)
+    gloss = {**g45, **g3}
+    clues = {w: clue_for(w, gloss[w][1]) for w in w45 + w3}
+    by_len = {}
+    for w in sorted(w45 + w3):
+        if clues[w]:
+            by_len.setdefault(len(w), []).append(w)
+    by_len_set = {k: set(v) for k, v in by_len.items()}
+    templates = [t for t in TEMPLATES if valid_template(t)]
     out, seen, tries = [], set(), 0
-    while len(out) < n and tries < 3_000_000:
+
+    def fill(grid, slots, used, budget):
+        # most-constrained slot first
+        best, best_cands = None, None
+        for sl in slots:
+            pat = [grid[r][c] for r, c in sl]
+            if all(pat):
+                # A completed slot (placed, or forced by its crossings) must be a real word.
+                if "".join(pat) not in by_len_set[len(sl)]:
+                    return False
+                continue
+            cands = [w for w in by_len[len(sl)] if w not in used
+                     and all(p is None or p == ch for p, ch in zip(pat, w))]
+            if best is None or len(cands) < len(best_cands):
+                best, best_cands = sl, cands
+                if not cands:
+                    return False
+        if best is None:
+            return True
+        rnd.shuffle(best_cands)
+        for w in best_cands[:12]:
+            budget[0] -= 1
+            if budget[0] < 0:
+                return False
+            old = [grid[r][c] for r, c in best]
+            for (r, c), ch in zip(best, w):
+                grid[r][c] = ch
+            used.add(w)
+            if fill(grid, slots, used, budget):
+                return True
+            used.discard(w)
+            for (r, c), ch in zip(best, old):
+                grid[r][c] = ch
+        return False
+
+    # Dense shapes can be infeasible with a few-thousand-word list: a shape that keeps failing
+    # without ever succeeding is dropped, so the rest of the budget goes to shapes that work.
+    fails = {id(t): 0 for t in templates}
+    wins = {id(t): 0 for t in templates}
+    while len(out) < n and tries < 20000 and templates:
         tries += 1
-        a = [rnd.choice(words) for _ in range(3)]
-        downs = []
-        for j in (0, 2, 4):
-            cand = by_triple.get((a[0][j], a[1][j], a[2][j]))
-            if not cand:
-                break
-            downs.append(rnd.choice(cand))
-        else:
-            ws = a + downs
-            if len(set(ws)) != 6:
-                continue
-            grid = [["#"] * 5 for _ in range(5)]
-            for i, r in enumerate((0, 2, 4)):
-                for c in range(5):
-                    grid[r][c] = a[i][c]
-            for i, c in enumerate((0, 2, 4)):
-                for r in range(5):
-                    grid[r][c] = downs[i][r]
-            flat = "".join("".join(row) for row in grid).upper()
-            if flat in seen:
-                continue
-            seen.add(flat)
-            out.append({"g": flat, "a": [clues[w] for w in a], "d": [clues[w] for w in downs]})
+        tpl = rnd.choice(templates)
+        across, down = slots_of(tpl)
+        grid = [[None if ch != "#" else "#" for ch in row] for row in tpl]
+        used = set()
+        if not fill(grid, across + down, used, [250]):
+            fails[id(tpl)] += 1
+            if fails[id(tpl)] >= 120 and wins[id(tpl)] == 0:
+                templates.remove(tpl)
+                print("  dropped infeasible shape:", " ".join(tpl))
+            continue
+        wins[id(tpl)] += 1
+        words_in = ["".join(grid[r][c] for r, c in sl) for sl in across + down]
+        if len(set(words_in)) != len(words_in):
+            continue  # a crossing-forced word repeated another one
+        flat = "".join(ch for row in grid for ch in row).upper()
+        if flat in seen:
+            continue
+        seen.add(flat)
+        word = lambda sl: "".join(grid[r][c] for r, c in sl)
+        out.append({"g": flat, "a": [clues[word(sl)] for sl in across], "d": [clues[word(sl)] for sl in down]})
     return out
 
 
@@ -201,16 +306,23 @@ def main():
     ap.add_argument("--sudoku", type=int, default=400)
     ap.add_argument("--wordsearch", type=int, default=300)
     ap.add_argument("--crossword", type=int, default=250)
+    ap.add_argument("--easy", type=int, default=300, help="count for each of the easy packs")
     ap.add_argument("--out", default=OUT, help="output directory (default: the app's bundled assets)")
     args = ap.parse_args()
     rnd = random.Random(args.seed)
     os.makedirs(args.out, exist_ok=True)
-    for name, fn, n in (
-        ("sudoku", sudoku_pack, args.sudoku),
-        ("wordsearch", wordsearch_pack, args.wordsearch),
-        ("crossword", crossword_pack, args.crossword),
-    ):
-        pack = fn(n, rnd)
+    packs = (
+        ("sudoku", lambda n: sudoku_pack(n, rnd), args.sudoku),
+        # Easy: 4x4 sudoku (2x2 boxes), about half the cells given.
+        ("sudoku4", lambda n: sudoku_pack(n, rnd, N=4, BR=2, BC=2, blanks=(6, 8)), args.easy),
+        ("wordsearch", lambda n: wordsearch_pack(n, rnd), args.wordsearch),
+        # Easy: 6x6 grid, 4 short common words, only left-to-right or top-to-bottom.
+        ("wordsearch6", lambda n: wordsearch_pack(n, rnd, size=6, count=4, lens=(3, 5),
+                                                   min_count=60, dirs=((0, 1), (1, 0))), args.easy),
+        ("crossword", lambda n: crossword_pack(n, rnd), args.crossword),
+    )
+    for name, fn, n in packs:
+        pack = fn(n)
         rnd.shuffle(pack)
         with open(os.path.join(args.out, name + ".json"), "w", encoding="utf-8", newline="\n") as f:
             json.dump(pack, f, separators=(",", ":"))

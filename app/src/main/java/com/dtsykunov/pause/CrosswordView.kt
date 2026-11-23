@@ -13,26 +13,35 @@ import android.view.MotionEvent
 import android.view.View
 
 /**
- * A 5x5 mini crossword. The layout is fixed: rows 0, 2, 4 are across answers and columns
- * 0, 2, 4 are down answers; the cells where an odd row meets an odd column are black. Tap a
- * cell to select it (tap again to switch between across and down), then type on the keyboard
- * drawn underneath.
+ * A mini crossword on any small grid shape. Words are the runs of 3+ white cells (the same rule
+ * tools/gen_puzzles.py uses), numbered in reading order. Tap a cell to select it (tap again to
+ * switch between across and down where both exist), then type on the keyboard drawn underneath.
+ * Nothing is filled in to start; Hint reveals the selected letter and Reveal word the whole word.
  */
 class CrosswordView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
-    private val n = 5
+    private var n = 5
     private var solution = CharArray(n * n) { '#' }
     private var entry = CharArray(n * n) { ' ' }
     private var across = emptyList<String>()
     private var down = emptyList<String>()
+
+    // Slots as lists of cell indexes, in the same order as the clue lists.
+    private var acrossSlots = emptyList<List<Int>>()
+    private var downSlots = emptyList<List<Int>>()
+    private var acrossAt = IntArray(0) // cell -> across slot index, or -1
+    private var downAt = IntArray(0)
+    private var numberAt = IntArray(0) // cell -> clue number, or 0
+
     private var sel = 0
     private var acrossDir = true
     private var solved = false
     private var solvedAt = 0L
-    /** Cells that are given or revealed by a hint: shown in the accent colour and not editable. */
+
+    /** Cells revealed by a hint: shown in the accent colour and not editable. */
     private var locked = BooleanArray(n * n)
     private var onSolved: (() -> Unit)? = null
 
@@ -51,58 +60,93 @@ class CrosswordView @JvmOverloads constructor(
     private val rows = listOf("QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM⌫")
 
     fun load(puzzle: PuzzleLibrary.Crossword, onSolved: () -> Unit) {
+        n = Math.round(Math.sqrt(puzzle.grid.length.toDouble())).toInt()
         solution = puzzle.grid.toCharArray()
         entry = CharArray(n * n) { if (solution[it] == '#') '#' else ' ' }
-        // Start easier: the first letter of every answer is filled in.
         locked = BooleanArray(n * n)
-        for (p in intArrayOf(0, 10, 20, 2, 4)) {
-            entry[p] = solution[p]
-            locked[p] = true
-        }
         across = puzzle.across
         down = puzzle.down
-        sel = 0
-        acrossDir = true
+        buildSlots()
+        sel = solution.indexOfFirst { it != '#' }.coerceAtLeast(0)
+        acrossDir = acrossAt[sel] >= 0
         solved = false
         solvedAt = 0L
         this.onSolved = onSolved
+        requestLayout()
         invalidate()
     }
 
+    /** Words are runs of 3+ white cells, across then down, ordered by their first cell. */
+    private fun buildSlots() {
+        val a = ArrayList<List<Int>>()
+        val d = ArrayList<List<Int>>()
+        for (r in 0 until n) {
+            var run = ArrayList<Int>()
+            for (c in 0..n) {
+                if (c < n && solution[r * n + c] != '#') {
+                    run.add(r * n + c)
+                } else {
+                    if (run.size >= 3) a.add(run)
+                    run = ArrayList()
+                }
+            }
+        }
+        for (c in 0 until n) {
+            var run = ArrayList<Int>()
+            for (r in 0..n) {
+                if (r < n && solution[r * n + c] != '#') {
+                    run.add(r * n + c)
+                } else {
+                    if (run.size >= 3) d.add(run)
+                    run = ArrayList()
+                }
+            }
+        }
+        acrossSlots = a // already in reading order
+        downSlots = d.sortedBy { it.first() } // cell index order == reading order of first cell
+        acrossAt = IntArray(n * n) { -1 }
+        downAt = IntArray(n * n) { -1 }
+        acrossSlots.forEachIndexed { i, s -> s.forEach { acrossAt[it] = i } }
+        downSlots.forEachIndexed { i, s -> s.forEach { downAt[it] = i } }
+        numberAt = IntArray(n * n)
+        val starts = HashSet<Int>().apply {
+            acrossSlots.forEach { add(it.first()) }
+            downSlots.forEach { add(it.first()) }
+        }
+        var num = 0
+        for (p in 0 until n * n) if (p in starts) numberAt[p] = ++num
+    }
+
     private fun cell() = width / n.toFloat()
-    private fun clueH() = cell() * 0.95f
+    private fun clueH() = width * 0.19f
     private fun keyW() = width / 10f
     private fun keyH() = keyW() * 1.15f
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         val w = MeasureSpec.getSize(widthSpec)
-        val s = w / n.toFloat()
-        setMeasuredDimension(w, (w + s * 0.95f + (w / 10f) * 1.15f * 4 + 8).toInt())
+        setMeasuredDimension(w, (w + w * 0.19f + (w / 10f) * 1.15f * 4 + 8).toInt())
     }
 
     private fun baseline(centerY: Float, p: Paint = text) = centerY - (p.ascent() + p.descent()) / 2
 
-    /** Number of the clue for a cell in a direction: 1-3 across rows 0/2/4 and down cols 0/2/4. */
     private fun clueText(): String {
-        val r = sel / n
-        val c = sel % n
-        return if (acrossDir) {
-            val i = r / 2 // across answers are rows 0/2/4, numbered 1, 4, 5
-            "${listOf(1, 4, 5)[i]} →  ${across[i]}"
-        } else {
-            val i = c / 2
-            "${i + 1} ↓  ${down[i]}"
-        }
+        val slot = if (acrossDir) acrossAt[sel] else downAt[sel]
+        if (slot < 0) return ""
+        val first = (if (acrossDir) acrossSlots[slot] else downSlots[slot]).first()
+        val body = if (acrossDir) across.getOrElse(slot) { "" } else down.getOrElse(slot) { "" }
+        return "${numberAt[first]} ${if (acrossDir) "→" else "↓"}  $body"
     }
 
-    /** True if [p] belongs to the current word. */
-    private fun inWord(p: Int): Boolean = if (acrossDir) p / n == sel / n else p % n == sel % n
+    private fun currentWord(): List<Int> =
+        (if (acrossDir) acrossSlots.getOrNull(acrossAt[sel]) else downSlots.getOrNull(downAt[sel]))
+            ?: listOf(sel)
 
     override fun onDraw(canvas: Canvas) {
-        if (solution[0] == '#' && solution.all { it == '#' }) return
+        if (solution.all { it == '#' }) return
         val s = cell()
         val w = width.toFloat()
         val d = resources.displayMetrics.density
+        val wordCells = currentWord().toSet()
 
         for (p in 0 until n * n) {
             val x = (p % n) * s
@@ -110,12 +154,10 @@ class CrosswordView @JvmOverloads constructor(
             if (solution[p] == '#') {
                 fill.color = ink
                 canvas.drawRect(x, y, x + s, y + s, fill)
-                continue
-            }
-            if (p == sel) {
+            } else if (p == sel) {
                 fill.color = cur
                 canvas.drawRect(x, y, x + s, y + s, fill)
-            } else if (inWord(p)) {
+            } else if (p in wordCells) {
                 fill.color = wash
                 canvas.drawRect(x, y, x + s, y + s, fill)
             }
@@ -127,6 +169,18 @@ class CrosswordView @JvmOverloads constructor(
             canvas.drawLine(0f, i * s, w, i * s, line)
         }
 
+        // Clue numbers, small in the corner of the cell.
+        text.typeface = Typeface.DEFAULT
+        text.textSize = s * 0.24f
+        text.textAlign = Paint.Align.LEFT
+        text.color = dim
+        for (p in 0 until n * n) {
+            if (numberAt[p] > 0) {
+                canvas.drawText(numberAt[p].toString(), (p % n) * s + s * 0.08f, (p / n) * s + s * 0.28f, text)
+            }
+        }
+        text.textAlign = Paint.Align.CENTER
+
         text.typeface = Typeface.DEFAULT_BOLD
         text.textSize = s * 0.55f
         for (p in 0 until n * n) {
@@ -137,12 +191,12 @@ class CrosswordView @JvmOverloads constructor(
                 ch != solution[p] -> wrong
                 else -> ink
             }
-            canvas.drawText(ch.toString(), (p % n + 0.5f) * s, baseline((p / n + 0.5f) * s), text)
+            canvas.drawText(ch.toString(), (p % n + 0.5f) * s, baseline((p / n + 0.5f) * s + s * 0.06f), text)
         }
 
         // Clue for the current word.
         clue.color = ink
-        clue.textSize = s * 0.3f
+        clue.textSize = w * 0.06f
         val layout = StaticLayout(clueText(), clue, width, Layout.Alignment.ALIGN_CENTER, 1f, 0f, false)
         canvas.save()
         canvas.translate(0f, w + (clueH() - layout.height.coerceAtMost(clueH().toInt())) / 2f)
@@ -226,15 +280,11 @@ class CrosswordView @JvmOverloads constructor(
             val p = (y / s).toInt().coerceIn(0, n - 1) * n + (x / s).toInt().coerceIn(0, n - 1)
             if (solution[p] == '#') return
             if (p == sel) {
-                // Cells at an odd row/column belong to only one word; keep the only valid direction.
-                val r = p / n
-                val c = p % n
-                if (r % 2 == 0 && c % 2 == 0) acrossDir = !acrossDir
+                // Switch direction only where the cell has both an across and a down word.
+                if (acrossAt[p] >= 0 && downAt[p] >= 0) acrossDir = !acrossDir
             } else {
                 sel = p
-                val r = p / n
-                val c = p % n
-                if (r % 2 == 1) acrossDir = false else if (c % 2 == 1) acrossDir = true
+                if (acrossAt[p] < 0) acrossDir = false else if (downAt[p] < 0) acrossDir = true
             }
         } else {
             val kw = keyW()
@@ -258,16 +308,9 @@ class CrosswordView @JvmOverloads constructor(
                     step(1)
                 }
             }
-            checkSolved()
+            if (entry.contentEquals(solution)) solved = true
         }
         invalidate()
-    }
-
-    /** Cells of the word the selection is in, in the current direction. */
-    private fun currentWord(): List<Int> {
-        val r = sel / n
-        val c = sel % n
-        return if (acrossDir) (0 until n).map { r * n + it } else (0 until n).map { it * n + c }
     }
 
     private fun reveal(cells: List<Int>) {
@@ -278,16 +321,10 @@ class CrosswordView @JvmOverloads constructor(
         }
     }
 
-    private fun checkSolved() {
-        if (entry.contentEquals(solution)) solved = true
-    }
-
-    /** Move to the next/previous open cell in the current direction, if any. */
+    /** Move to the next/previous cell within the current word, if there is one. */
     private fun step(by: Int) {
-        val dr = if (acrossDir) 0 else by
-        val dc = if (acrossDir) by else 0
-        val r = sel / n + dr
-        val c = sel % n + dc
-        if (r in 0 until n && c in 0 until n && solution[r * n + c] != '#') sel = r * n + c
+        val word = currentWord()
+        val i = word.indexOf(sel) + by
+        if (i in word.indices) sel = word[i]
     }
 }

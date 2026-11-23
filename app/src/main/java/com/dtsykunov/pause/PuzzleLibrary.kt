@@ -16,21 +16,14 @@ enum class PuzzleType(val id: String, val labelRes: Int) {
     }
 }
 
-/** How big puzzles are drawn. LARGE is the original size; SMALL (default) leaves more of the
- *  pause screen showing. Each puzzle has its own small factor: the crossword needs room for
- *  its keyboard, the word search and sudoku can shrink the most. */
-enum class PuzzleSize(val id: String, val labelRes: Int) {
-    SMALL("small", R.string.size_small),
-    LARGE("large", R.string.size_large);
-
-    fun factor(type: PuzzleType): Float = if (this == LARGE) 1f else when (type) {
-        PuzzleType.WORDSEARCH -> 0.62f
-        PuzzleType.SUDOKU -> 0.72f
-        else -> 0.85f
-    }
+/** How hard the puzzles are. EASY (the default) uses a 4x4 sudoku and a 6x6 word search with
+ *  four short words; STANDARD is the full 6x6 sudoku and 8x8 word search. */
+enum class PuzzleLevel(val id: String, val labelRes: Int) {
+    EASY("easy", R.string.level_easy),
+    STANDARD("standard", R.string.level_standard);
 
     companion object {
-        fun fromId(id: String?): PuzzleSize = values().firstOrNull { it.id == id } ?: SMALL
+        fun fromId(id: String?): PuzzleLevel = if (id == "standard") STANDARD else EASY
     }
 }
 
@@ -68,7 +61,12 @@ object PuzzleLibrary {
 
     /** The next unseen puzzle of a concrete [type], as one of the data classes above. */
     fun next(c: Context, type: PuzzleType): Any {
-        val name = type.id
+        val easy = Prefs.puzzleLevel(c) == PuzzleLevel.EASY
+        val name = when (type) {
+            PuzzleType.SUDOKU -> if (easy) "sudoku4" else "sudoku"
+            PuzzleType.WORDSEARCH -> if (easy) "wordsearch6" else "wordsearch"
+            else -> "crossword"
+        }
         val arr = pack(c, name)
         val o = arr.getJSONObject(Prefs.nextPuzzleIndex(c, name, arr.length()))
         return when (type) {

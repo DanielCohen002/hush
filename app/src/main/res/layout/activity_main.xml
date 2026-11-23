@@ -396,7 +396,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/puzzleSizeRow"
+        android:id="@+id/puzzleLevelRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/selectableItemBackground"
@@ -413,12 +413,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/section_puzzle_size"
+                android:text="@string/section_puzzle_level"
                 android:textColor="?attr/pTextPrimary"
                 android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/puzzleSizeValue"
+                android:id="@+id/puzzleLevelValue"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"

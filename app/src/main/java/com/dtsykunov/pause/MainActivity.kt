@@ -89,16 +89,16 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        binding.puzzleSizeRow.setOnClickListener {
-            val sizes = PuzzleSize.values()
+        binding.puzzleLevelRow.setOnClickListener {
+            val levels = PuzzleLevel.values()
             MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.section_puzzle_size)
+                .setTitle(R.string.section_puzzle_level)
                 .setSingleChoiceItems(
-                    sizes.map { getString(it.labelRes) }.toTypedArray(),
-                    sizes.indexOf(Prefs.puzzleSize(this)),
+                    levels.map { getString(it.labelRes) }.toTypedArray(),
+                    levels.indexOf(Prefs.puzzleLevel(this)),
                 ) { dialog, which ->
-                    Prefs.setPuzzleSize(this, sizes[which])
-                    binding.puzzleSizeValue.setText(sizes[which].labelRes)
+                    Prefs.setPuzzleLevel(this, levels[which])
+                    binding.puzzleLevelValue.setText(levels[which].labelRes)
                     dialog.dismiss()
                 }
                 .setNegativeButton(android.R.string.cancel, null)
@@ -312,7 +312,7 @@ class MainActivity : AppCompatActivity() {
             if (altCount == 0) getString(R.string.alt_apps_none)
             else resources.getQuantityString(R.plurals.alt_apps_count, altCount, altCount)
         binding.puzzleTypeValue.setText(Prefs.puzzleType(this).labelRes)
-        binding.puzzleSizeValue.setText(Prefs.puzzleSize(this).labelRes)
+        binding.puzzleLevelValue.setText(Prefs.puzzleLevel(this).labelRes)
         refreshLibraryRow()
         binding.themeValue.setText(Prefs.theme(this).labelRes)
         binding.updateValue.text = getString(R.string.version_value, UpdateChecker.currentVersion(this))
