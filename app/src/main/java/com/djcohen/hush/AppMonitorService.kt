@@ -565,7 +565,7 @@ class AppMonitorService : AccessibilityService() {
      *  the paused app; if they went home meanwhile, drop the pause instead of leaving it
      *  stuck over the home screen. Checked a few times because leaving takes a moment. */
     private fun verifyStillInApp() {
-        for (d in longArrayOf(500, 1300, 2300)) {
+        for (d in longArrayOf(0, 100, 250, 500, 1000, 2000)) {
             handler.postDelayed({
                 val o = overlay
                 if (o == null || !o.isShowing) return@postDelayed
