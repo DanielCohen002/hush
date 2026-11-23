@@ -158,7 +158,10 @@ class AppMonitorService : AccessibilityService() {
             }
             // The cover screen behind the shade (and its closing) flashes the launcher; that is
             // not the user leaving.
-            if (CurtainActivity.recentlyActive()) return
+            if (CurtainActivity.recentlyActive()) {
+                verifyStillInApp()
+                return
+            }
             // A move to any real window other than the paused app (home, recents, another app)
             // may mean the user navigated away with a system gesture. But raw events are noisy
             // exactly while the paused app is still launching (launcher transitions, permission
@@ -558,6 +561,20 @@ class AppMonitorService : AccessibilityService() {
         }
     }
 
+    /** After the shade (or its cover screen) has been involved, make sure the user is still in
+     *  the paused app; if they went home meanwhile, drop the pause instead of leaving it
+     *  stuck over the home screen. Checked a few times because leaving takes a moment. */
+    private fun verifyStillInApp() {
+        for (d in longArrayOf(500, 1300, 2300)) {
+            handler.postDelayed({
+                val o = overlay
+                if (o == null || !o.isShowing) return@postDelayed
+                val top = topApplicationPackage()
+                if (top != null && !isTransientWindow(top) && top != currentApp) dismissOverlay()
+            }, d)
+        }
+    }
+
     private val shadeWatch = object : Runnable {
         override fun run() {
             val o = overlay
@@ -566,7 +583,14 @@ class AppMonitorService : AccessibilityService() {
             shadeMax = maxOf(shadeMax, f)
             if (f < 0.05f || f < shadeMax - 0.08f) {
                 shadeClosing = f >= 0.15f
-                o.setHidden(false)
+                val top = topApplicationPackage()
+                if (top != null && !isTransientWindow(top) && top != currentApp) {
+                    // Went home (or elsewhere) while the shade was open: no pause to bring back.
+                    dismissOverlay()
+                } else {
+                    o.setHidden(false)
+                    verifyStillInApp()
+                }
             } else {
                 handler.postDelayed(this, 30)
             }

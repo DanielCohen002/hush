@@ -30,8 +30,8 @@ class CurtainActivity : Activity() {
         }
         @Suppress("DEPRECATION")
         window.navigationBarColor = night
-        @Suppress("DEPRECATION")
-        overridePendingTransition(0, 0)
+        noTransitions()
+        window.setWindowAnimations(0)
         instance = this
         lastActiveAt = android.os.SystemClock.elapsedRealtime()
     }
@@ -48,9 +48,21 @@ class CurtainActivity : Activity() {
     }
 
     override fun finish() {
+        noTransitions()
         super.finish()
-        @Suppress("DEPRECATION")
-        overridePendingTransition(0, 0)
+        noTransitions()
+    }
+
+    /** No open/close animation at all: the old call is ignored on Android 14+, which is what
+     *  left a gray slab sliding across the status bar when this screen went away. */
+    private fun noTransitions() {
+        if (android.os.Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
     }
 
     override fun onDestroy() {
@@ -71,6 +83,10 @@ class CurtainActivity : Activity() {
 
         /** Show the curtain; [shown] runs once it is on screen. */
         fun show(context: Context, shown: () -> Unit) {
+            if (instance != null) { // already up (kept for the rest of this pause)
+                shown()
+                return
+            }
             onShown = shown
             try {
                 context.startActivity(

@@ -275,8 +275,9 @@ class InterventionOverlay(
         hidden = hide
         if (!isShowing) return
         applyHidden()
-        // Pause screen is back on top; the cover screen can go once it has been drawn.
-        if (!hide) mediaHandler.postDelayed({ if (!hidden) CurtainActivity.close() }, 250)
+        // The cover screen stays up for the rest of this pause (it closes when you proceed or
+        // leave). Closing it right away let the paused app's own open animation slide across
+        // the status bar, which the pause screen doesn't cover.
     }
 
     /** Open the notification shade over a plain cover screen, so that closing it never shows
@@ -469,6 +470,8 @@ class InterventionOverlay(
     private fun dismiss(resumeMedia: Boolean = false, action: () -> Unit) {
         if (dismissing) return
         dismissing = true
+        // Bring the paused app back underneath while the pause screen slides away.
+        CurtainActivity.close()
         stopMediaHold(resumeMedia)
         action()
         slideOutAndRemove()

@@ -1,0 +1,2 @@
+- Fixed the pause screen getting stuck over the home screen after using the notification shade
+- Fixed a gray slab sliding across the status bar when the shade closes
