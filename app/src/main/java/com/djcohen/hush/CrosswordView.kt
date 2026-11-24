@@ -16,7 +16,8 @@ import android.view.View
  * A mini crossword on any small grid shape. Words are the runs of 3+ white cells (the same rule
  * tools/gen_puzzles.py uses), numbered in reading order. Tap a cell to select it (tap again to
  * switch between across and down where both exist), then type on the keyboard drawn underneath.
- * Nothing is filled in to start; Hint reveals the selected letter and Reveal word the whole word.
+ * Nothing is filled in to start; Hint reveals the selected letter and the last letter of its word; Reveal word the whole word.
+ * Nothing is marked right or wrong until the whole grid is full.
  */
 class CrosswordView @JvmOverloads constructor(
     context: Context,
@@ -41,7 +42,7 @@ class CrosswordView @JvmOverloads constructor(
     private var solved = false
     private var solvedAt = 0L
 
-    /** Cells revealed by a hint: shown in the accent colour and not editable. */
+    /** Cells revealed by a hint: not editable. */
     private var locked = BooleanArray(n * n)
     private var onSolved: (() -> Unit)? = null
 
@@ -183,14 +184,13 @@ class CrosswordView @JvmOverloads constructor(
 
         text.typeface = Typeface.DEFAULT_BOLD
         text.textSize = s * 0.55f
+        // Every letter looks the same until the whole grid is filled in: nothing says a word is right
+        // before then. Only a full grid that is not the solution marks its wrong letters.
+        val full = entry.none { it == ' ' }
         for (p in 0 until n * n) {
             val ch = entry[p]
             if (ch == '#' || ch == ' ') continue
-            text.color = when {
-                locked[p] -> accent
-                ch != solution[p] -> wrong
-                else -> ink
-            }
+            text.color = if (full && !solved && ch != solution[p]) wrong else ink
             canvas.drawText(ch.toString(), (p % n + 0.5f) * s, baseline((p / n + 0.5f) * s + s * 0.06f), text)
         }
 
@@ -291,7 +291,7 @@ class CrosswordView @JvmOverloads constructor(
             val kh = keyH()
             val ri = ((y - width - clueH()) / kh).toInt()
             if (ri == 3) {
-                if (x < width / 2f) reveal(listOf(sel)) else reveal(currentWord())
+                if (x < width / 2f) reveal(listOf(sel, currentWord().last())) else reveal(currentWord())
             } else {
                 if (ri !in rows.indices) return
                 val row = rows[ri]

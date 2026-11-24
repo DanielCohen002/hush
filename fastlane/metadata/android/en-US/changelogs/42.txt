@@ -1,0 +1,4 @@
+- Mini crossword is easier: clues are shorter and plainer, and each shows its part of speech (noun, verb, adjective...).
+- Hint now also reveals the last letter of the word.
+- Fewer repeated words and clues across crosswords.
+- Letters no longer change colour while you type: nothing says a word is right or wrong until the whole grid is filled in.

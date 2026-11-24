@@ -47,20 +47,27 @@ def common_words(min_len, max_len, min_count):
                 continue
             c = lem.count()
             freq[w] = freq.get(w, 0) + c
-            if c >= gloss.get(w, (-1, ""))[0]:
-                gloss[w] = (c, syn.definition())
+            gloss.setdefault(w, []).append((c, syn.definition(), syn.pos()))
     words = [w for w, c in freq.items() if c >= min_count and w not in BLOCK]
+    # Most common sense first; a word's rarer senses (seen at least twice) give it extra clues.
+    for w, senses in gloss.items():
+        senses.sort(key=lambda t: -t[0])
+        gloss[w] = [t for i, t in enumerate(senses) if i == 0 or (i < 3 and t[0] >= 2)]
     return words, gloss
 
 
-def clue_for(word, definition):
+POS_NAME = {"n": "noun", "v": "verb", "a": "adjective", "s": "adjective", "r": "adverb"}
+
+
+def clue_for(word, definition, pos):
+    """Short plain definition plus its part of speech, e.g. "Operate or control a vehicle (verb)"."""
     first = definition.split(";")[0].strip()
     if "(" in first:
         first = first.split("(")[0].strip()
     stem = word[:4]
-    if stem in first.lower() or len(first) < 6 or len(first) > 64:
+    if stem in first.lower() or len(first) < 6 or len(first) > 44:
         return None
-    return first[0].upper() + first[1:]
+    return "%s (%s)" % (first[0].upper() + first[1:], POS_NAME.get(pos, "word"))
 
 
 def sudoku_pack(n, rnd, N=6, BR=2, BC=3, blanks=(16, 20)):
@@ -129,11 +136,24 @@ def wordsearch_pack(n, rnd, size=8, count=6, lens=(4, 6), min_count=20,
     """dirs: (row step, col step); the default is right, down, down-right, up-right."""
     words, _ = common_words(lens[0], lens[1], min_count)
     words = sorted(words)
+    # Least-used words first, and never a word from the puzzle just before, so words do not repeat
+    # soon or back to back (the pack is walked in order, so it is not shuffled afterwards).
+    usage = {}
+    prev = set()
+    recent = []  # (cells used by the words, each word's cells) of the last few puzzles
     out, seen = [], set()
     while len(out) < n:
-        picks = rnd.sample(words, count)
+        pool = sorted((w for w in words if w not in prev), key=lambda w: (usage.get(w, 0), rnd.random()))
+        picks = []
+        for w in pool:  # no word may be part of another word in the same puzzle ("ear" and "heart")
+            if all(w not in x and x not in w for x in picks):
+                picks.append(w)
+                if len(picks) == count:
+                    break
+        rnd.shuffle(picks)
         grid = [[""] * size for _ in range(size)]
         placed = []
+        lines = []
         for w in picks:
             for _ in range(80):
                 dr, dc = rnd.choice(dirs)
@@ -142,18 +162,30 @@ def wordsearch_pack(n, rnd, size=8, count=6, lens=(4, 6), min_count=20,
                 if not (0 <= er < size and 0 <= ec < size):
                     continue
                 cells = [(r + dr * i, c + dc * i) for i in range(len(w))]
+                # A word may cross or share a letter with others, but never sit fully inside other words' cells.
+                if set(cells) <= set().union(*lines, set()) or any(ln <= set(cells) for ln in lines):
+                    continue
                 if all(grid[a][b] in ("", w[i]) for i, (a, b) in enumerate(cells)):
                     for i, (a, b) in enumerate(cells):
                         grid[a][b] = w[i]
                     placed.append(w)
+                    lines.append(frozenset(cells))
                     break
         if len(placed) < count:
             continue
+        # The overall footprint and the lines of the found words must not look like the last few puzzles.
+        foot = set().union(*lines)
+        if any(len(foot & f) / len(foot | f) > 0.4 or set(lines) & set(ls) for f, ls in recent):
+            continue
+        recent = (recent + [(foot, lines)])[-3:]
         letters = "etaoinsrhlcdumfpgwybvk"
         flat = "".join(ch or rnd.choice(letters) for row in grid for ch in row)
         if flat in seen:
             continue
         seen.add(flat)
+        for w in placed:
+            usage[w] = usage.get(w, 0) + 1
+        prev = set(placed)
         out.append({"g": flat.upper(), "w": [w.upper() for w in placed]})
     return out
 
@@ -225,10 +257,15 @@ def valid_template(tpl):
 def crossword_pack(n, rnd):
     """Mini crosswords on several different 5x5 block patterns (TEMPLATES), filled from
     WordNet words with a dictionary-definition clue each."""
-    w45, g45 = common_words(4, 5, 8)
+    w45, g45 = common_words(4, 5, 12)
     w3, g3 = common_words(3, 3, 30)
     gloss = {**g45, **g3}
-    clues = {w: clue_for(w, gloss[w][1]) for w in w45 + w3}
+    # Every word keeps a list of possible clues (one per common sense).
+    clues = {}
+    for w in w45 + w3:
+        got = [clue_for(w, d, pos) for _, d, pos in gloss[w]]
+        clues[w] = [c for c in dict.fromkeys(got) if c]
+    clue_use = {}
     by_len = {}
     for w in sorted(w45 + w3):
         if clues[w]:
@@ -236,6 +273,7 @@ def crossword_pack(n, rnd):
     by_len_set = {k: set(v) for k, v in by_len.items()}
     templates = [t for t in TEMPLATES if valid_template(t)]
     out, seen, tries = [], set(), 0
+    usage = {}  # how often each word is already in the pack: least-used words are tried first
 
     def fill(grid, slots, used, budget):
         # most-constrained slot first
@@ -255,7 +293,7 @@ def crossword_pack(n, rnd):
                     return False
         if best is None:
             return True
-        rnd.shuffle(best_cands)
+        best_cands.sort(key=lambda w: (usage.get(w, 0), rnd.random()))
         for w in best_cands[:12]:
             budget[0] -= 1
             if budget[0] < 0:
@@ -295,9 +333,43 @@ def crossword_pack(n, rnd):
         if flat in seen:
             continue
         seen.add(flat)
+        for w in words_in:
+            usage[w] = usage.get(w, 0) + 1
         word = lambda sl: "".join(grid[r][c] for r, c in sl)
-        out.append({"g": flat, "a": [clues[word(sl)] for sl in across], "d": [clues[word(sl)] for sl in down]})
+
+        def pick(sl):
+            c = min(clues[word(sl)], key=lambda x: (clue_use.get(x, 0), rnd.random()))
+            clue_use[c] = clue_use.get(c, 0) + 1
+            return c
+
+        out.append({"g": flat, "a": [pick(sl) for sl in across], "d": [pick(sl) for sl in down]})
     return out
+
+
+def spread_shapes(pack, rnd):
+    """Reorder crosswords so two in a row never share a block pattern (also from the last back to the
+    first, since the app wraps around). Always takes the shape with the most puzzles left, which keeps
+    the shapes evenly mixed."""
+    by_shape = {}
+    for p in pack:
+        by_shape.setdefault("".join("#" if ch == "#" else "." for ch in p["g"]), []).append(p)
+    for _ in range(50):
+        left = {k: list(v) for k, v in by_shape.items()}
+        for v in left.values():
+            rnd.shuffle(v)
+        out, prev = [], None
+        while any(left.values()):
+            opts = [k for k, v in left.items() if v and k != prev]
+            if not opts:
+                break
+            top = max(len(left[k]) for k in opts)
+            k = rnd.choice([k for k in opts if len(left[k]) == top])
+            out.append(left[k].pop())
+            prev = k
+        shape = lambda p: "".join("#" if ch == "#" else "." for ch in p["g"])
+        if len(out) == len(pack) and shape(out[0]) != shape(out[-1]):
+            return out
+    return pack
 
 
 def main():
@@ -327,7 +399,10 @@ def main():
         if only and name not in only:
             continue
         pack = fn(n)
-        rnd.shuffle(pack)
+        if not name.startswith("wordsearch"):
+            rnd.shuffle(pack)
+        if name == "crossword":
+            pack = spread_shapes(pack, rnd)
         with open(os.path.join(args.out, name + ".json"), "w", encoding="utf-8", newline="\n") as f:
             json.dump(pack, f, separators=(",", ":"))
         print(name, len(pack))
