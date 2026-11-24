@@ -9,6 +9,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import com.djcohen.hush.databinding.ItemAltAppBinding
 import com.djcohen.hush.databinding.OverlayInterventionBinding
@@ -436,7 +437,29 @@ class InterventionOverlay(
         binding.breatheText.visibility = if (puzzleShown) View.GONE else View.VISIBLE
         if (puzzleShown) binding.phaseText.visibility = View.GONE
         updateCornerTimer()
+        if (puzzleShown) fitPuzzle()
         binding.puzzleButton.setText(if (puzzleShown) R.string.overlay_back_to_breathing else R.string.overlay_puzzle)
+    }
+
+    /** Give the puzzle exactly the height left over, so the pause screen never needs to scroll. */
+    private fun fitPuzzle() {
+        binding.root.post {
+            if (!puzzleShown) return@post
+            val content = binding.content
+            val wrapper = binding.puzzleView.parent as? View
+            var other = content.paddingTop + content.paddingBottom
+            if (content.indexOfChild(wrapper) >= 0) {
+                for (i in 0 until content.childCount) {
+                    val c = content.getChildAt(i)
+                    if (c.visibility == View.GONE) continue
+                    val lp = c.layoutParams as ViewGroup.MarginLayoutParams
+                    other += lp.topMargin + lp.bottomMargin
+                    if (c !== wrapper) other += c.height
+                }
+            }
+            val margin = (8 * binding.root.resources.displayMetrics.density).toInt()
+            binding.puzzleView.budgetPx = (binding.scrollView.height - other - margin).coerceAtLeast(0)
+        }
     }
 
     /** Compact elapsed time for "Last opened … ago": "45s", "10m", "3h", "2d". */

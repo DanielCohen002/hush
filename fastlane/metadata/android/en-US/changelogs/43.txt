@@ -1,0 +1,2 @@
+- Puzzles now use the full screen width and are sized so the pause screen never needs to scroll.
+- Mini crossword: bigger keyboard, with the grid sized to fit the space left.
