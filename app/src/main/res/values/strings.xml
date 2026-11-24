@@ -111,6 +111,8 @@
     <string name="puzzle_sudoku">Mini sudoku</string>
     <string name="puzzle_wordsearch">Word search</string>
     <string name="puzzle_crossword">Mini crossword</string>
+    <string name="puzzle_hangman">Hangman</string>
+    <string name="hangman_lost">It was %1$s</string>
     <string name="puzzle_mix">Mix it up</string>
     <string name="section_theme">Colour theme</string>
     <string name="theme_teal">Seafoam</string>

@@ -9,13 +9,14 @@ enum class PuzzleType(val id: String, val labelRes: Int) {
     SUDOKU("sudoku", R.string.puzzle_sudoku),
     WORDSEARCH("wordsearch", R.string.puzzle_wordsearch),
     CROSSWORD("crossword", R.string.puzzle_crossword),
+    HANGMAN("hangman", R.string.puzzle_hangman),
     MIX("mix", R.string.puzzle_mix);
 
     companion object {
         fun fromId(id: String?): PuzzleType = values().firstOrNull { it.id == id } ?: SUDOKU
 
         /** The types shown as toggles ([MIX] is only the old combined setting). */
-        val selectable = listOf(SUDOKU, WORDSEARCH, CROSSWORD)
+        val selectable = listOf(SUDOKU, WORDSEARCH, CROSSWORD, HANGMAN)
     }
 }
 
@@ -38,6 +39,7 @@ enum class PuzzleLevel(val id: String, val labelRes: Int) {
 object PuzzleLibrary {
     class Sudoku(val given: IntArray, val solution: IntArray)
     class WordSearch(val grid: String, val words: List<String>)
+    class Hangman(val word: String, val clue: String)
     class Crossword(val grid: String, val across: List<String>, val down: List<String>)
 
     private val cache = HashMap<String, JSONArray>()
@@ -68,6 +70,7 @@ object PuzzleLibrary {
         val name = when (type) {
             PuzzleType.SUDOKU -> if (easy) "sudoku4" else "sudoku"
             PuzzleType.WORDSEARCH -> if (easy) "wordsearch6" else "wordsearch"
+            PuzzleType.HANGMAN -> if (easy) "hangman5" else "hangman"
             else -> "crossword"
         }
         val arr = pack(c, name)
@@ -81,6 +84,7 @@ object PuzzleLibrary {
                 o.getString("g"),
                 o.getJSONArray("w").let { w -> (0 until w.length()).map { w.getString(it) } },
             )
+            PuzzleType.HANGMAN -> Hangman(o.getString("w"), o.getString("c"))
             else -> Crossword(
                 o.getString("g"),
                 o.getJSONArray("a").let { w -> (0 until w.length()).map { w.getString(it) } },

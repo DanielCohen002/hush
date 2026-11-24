@@ -1,0 +1,3 @@
+- New puzzle: Hangman. Guess the word from its subject (animal, food, plant, body part or nature) by tapping letters. Six wrong guesses end the round, and Hint reveals a letter for free.
+- Hangman follows the puzzle difficulty: Easy uses short 4-5 letter words, Standard uses 6-8 letters.
+- Turn it on under Puzzles (it is off until you tick it).

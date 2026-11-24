@@ -16,7 +16,7 @@ import kotlin.concurrent.thread
  */
 object PuzzleUpdater {
     private const val BASE = "https://raw.githubusercontent.com/DanielCohen002/hush/main/puzzle-packs/"
-    private val PACKS = listOf("sudoku", "sudoku4", "wordsearch", "wordsearch6", "crossword")
+    private val PACKS = listOf("sudoku", "sudoku4", "wordsearch", "wordsearch6", "crossword", "hangman", "hangman5")
 
     fun dir(c: Context) = File(c.filesDir, "puzzles")
 

@@ -189,7 +189,7 @@ object Prefs {
     /** Forget which puzzles have been seen, so the next ones start from a fresh random spot. */
     fun resetPuzzleProgress(c: Context) {
         val e = sp(c).edit()
-        for (name in listOf("sudoku", "sudoku4", "wordsearch", "wordsearch6", "crossword")) e.remove(KEY_PUZZLE_IDX + name)
+        for (name in listOf("sudoku", "sudoku4", "wordsearch", "wordsearch6", "crossword", "hangman", "hangman5")) e.remove(KEY_PUZZLE_IDX + name)
         e.apply()
     }
 

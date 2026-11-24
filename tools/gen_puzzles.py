@@ -5,12 +5,12 @@ The app never generates puzzles at runtime: it just walks through these packs, s
 never repeats until the whole pack has been used. To refresh the library, re-run this with a
 different --seed (or bigger counts) and rebuild the app.
 
-    pip install nltk && python tools/gen_puzzles.py
+    pip install nltk wordfreq && python tools/gen_puzzles.py
 
 The bigger downloadable library the app fetches with "Download new puzzles" lives in
 puzzle-packs/ at the repo root; rebuild it with a fresh seed to give users new puzzles:
 
-    python tools/gen_puzzles.py --seed 7 --sudoku 1200 --wordsearch 800 --crossword 600 --out puzzle-packs
+    python tools/gen_puzzles.py --seed 7 --sudoku 1200 --wordsearch 800 --crossword 600 --hangman 800 --out puzzle-packs
 
 Word and clue source: Princeton WordNet (permissive licence), via nltk.
 """
@@ -254,6 +254,44 @@ def valid_template(tpl):
     return seen == whites
 
 
+HANGMAN_SUBJECTS = {
+    "noun.animal": "Animal", "noun.food": "Food", "noun.plant": "Plant",
+    "noun.body": "Body part", "noun.phenomenon": "Nature", "noun.object": "Nature",
+}
+# Odd picks that slipped through the subject lookup.
+HANGMAN_BLOCK = set("human molly spam drag anterior posterior total sound murphy cole timothy marc maria costa dale must nova giant cows veronica charger sierra ascent calculus silva ness benny milo fanny brent blanc coco hash elves swine brow".split())
+
+
+def hangman_pack(n, rnd, lens, min_zipf):
+    """Hangman: one common noun each, with its subject (animal, food...) as the only hint.
+    Commonness comes from the wordfreq package (Zipf scale); a word's subject is that of its
+    first (most common) WordNet sense, which must be a noun. Picked evenly across subjects."""
+    from wordfreq import zipf_frequency
+    cands = {lem.name() for syn in wn.all_synsets("n") for lem in syn.lemmas()}
+    groups = {}
+    for w in sorted(cands):
+        if not w.isalpha() or not w.islower() or not (lens[0] <= len(w) <= lens[1]) or w in BLOCK or w in HANGMAN_BLOCK:
+            continue
+        if zipf_frequency(w, "en") < min_zipf:
+            continue
+        syns = wn.synsets(w)
+        first = syns[0]
+        # Mostly-noun words only: "come" or "simple" would be odd under a subject.
+        if sum(1 for x in syns if x.pos() != "n") > 1:
+            continue
+        subject = HANGMAN_SUBJECTS.get(first.lexname()) if first.pos() == "n" else None
+        if subject:
+            groups.setdefault(subject, []).append({"w": w, "c": subject})
+    for g in groups.values():
+        rnd.shuffle(g)
+    out = []
+    while len(out) < n and any(groups.values()):
+        for g in groups.values():
+            if g and len(out) < n:
+                out.append(g.pop())
+    return out
+
+
 def crossword_pack(n, rnd):
     """Mini crosswords on several different 5x5 block patterns (TEMPLATES), filled from
     WordNet words with a dictionary-definition clue each."""
@@ -378,6 +416,7 @@ def main():
     ap.add_argument("--sudoku", type=int, default=400)
     ap.add_argument("--wordsearch", type=int, default=300)
     ap.add_argument("--crossword", type=int, default=250)
+    ap.add_argument("--hangman", type=int, default=300)
     ap.add_argument("--easy", type=int, default=300, help="count for each of the easy packs")
     ap.add_argument("--only", default="", help="comma-separated pack names to rebuild (default: all)")
     ap.add_argument("--out", default=OUT, help="output directory (default: the app's bundled assets)")
@@ -393,13 +432,16 @@ def main():
         ("wordsearch6", lambda n: wordsearch_pack(n, rnd, size=6, count=4, lens=(3, 5),
                                                    min_count=60, dirs=((0, 1), (1, 0), (1, 1), (-1, 1))), args.easy),
         ("crossword", lambda n: crossword_pack(n, rnd), args.crossword),
+        # Hangman: easy = common 4-5 letter nouns, standard = 6-8 letters; the hint is the subject.
+        ("hangman5", lambda n: hangman_pack(n, rnd, (4, 5), 3.4), args.easy),
+        ("hangman", lambda n: hangman_pack(n, rnd, (6, 8), 3.4), args.hangman),
     )
     only = {x for x in args.only.split(",") if x}
     for name, fn, n in packs:
         if only and name not in only:
             continue
         pack = fn(n)
-        if not name.startswith("wordsearch"):
+        if not name.startswith(("wordsearch", "hangman")):
             rnd.shuffle(pack)
         if name == "crossword":
             pack = spread_shapes(pack, rnd)

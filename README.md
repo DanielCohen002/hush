@@ -19,7 +19,7 @@ What Hush adds on top of Pause:
 - apps of your choosing offered "instead" on the pause screen
 - breathing styles: classic, box, 4-7-8, ripples, still
 - three colour themes (Ember by default, Seafoam, and the original Lavender), light and dark
-- an optional puzzle while you wait: mini sudoku, word search or mini crossword, from bundled packs
+- an optional puzzle while you wait: mini sudoku, word search, mini crossword or hangman, from bundled packs
   (`tools/gen_puzzles.py` builds them) so nothing is generated on the phone and nothing repeats
 
 When you launch a selected app, the screen is covered by a panel with a countdown; only after it

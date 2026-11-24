@@ -38,6 +38,7 @@ class PuzzleHost @JvmOverloads constructor(
             is PuzzleLibrary.Sudoku -> MiniSudokuView(context).also { it.load(puzzle, onSolved) }
             is PuzzleLibrary.WordSearch -> WordSearchView(context).also { it.load(puzzle, onSolved) }
             is PuzzleLibrary.Crossword -> CrosswordView(context).also { it.maxHeightPx = budgetPx; it.load(puzzle, onSolved) }
+            is PuzzleLibrary.Hangman -> HangmanView(context).also { it.load(puzzle, onSolved) }
             else -> return
         }
         addView(view, LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
