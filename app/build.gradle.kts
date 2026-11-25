@@ -23,8 +23,8 @@ android {
         applicationId = "com.djcohen.hush"
         minSdk = 24
         targetSdk = 34
-        versionCode = 44
-        versionName = "0.8.3"
+        versionCode = 45
+        versionName = "0.8.4"
         resourceConfigurations += listOf("en")
     }
 
