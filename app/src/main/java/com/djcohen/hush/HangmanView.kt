@@ -102,12 +102,6 @@ class HangmanView @JvmOverloads constructor(
         if (misses >= 5) canvas.drawLine(ropeX, hipY, ropeX - w * 0.07f, hipY + fh * 0.25f, stroke)
         if (misses >= 6) canvas.drawLine(ropeX, hipY, ropeX + w * 0.07f, hipY + fh * 0.25f, stroke)
 
-        // Tries left, as small dots beside the gallows.
-        fill.color = dim
-        for (i in 0 until MAX_MISSES - misses) {
-            canvas.drawCircle(w * 0.08f + i * w * 0.045f, fh * 0.08f, 4f * d, fill)
-        }
-
         // The word: a letter or a blank per position (the whole word once the round is lost).
         val slot = minOf(w * 0.12f, w * 0.92f / word.length)
         val left = (w - slot * word.length) / 2f

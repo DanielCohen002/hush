@@ -76,19 +76,19 @@
                     <!-- Takes the timer's place at the top once the countdown ends while a puzzle is showing. -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/topOpenButton"
-                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
+                        android:minWidth="140dp"
                         android:minHeight="44dp"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:paddingHorizontal="20dp"
+                        android:paddingHorizontal="28dp"
                         android:paddingVertical="0dp"
-                        android:textSize="19sp"
+                        android:textSize="16sp"
                         android:text="@string/overlay_open"
-                        android:textColor="?attr/pTextPrimary"
-                        android:visibility="invisible" />
+                        android:visibility="invisible"
+                        app:cornerRadius="22dp" />
                 </FrameLayout>
 
                 <FrameLayout

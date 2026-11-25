@@ -260,6 +260,11 @@ HANGMAN_SUBJECTS = {
 }
 # Odd picks that slipped through the subject lookup.
 HANGMAN_BLOCK = set("human molly spam drag anterior posterior total sound murphy cole timothy marc maria costa dale must nova giant cows veronica charger sierra ascent calculus silva ness benny milo fanny brent blanc coco hash elves swine brow".split())
+# Words whose first WordNet sense gives a wrong or odd subject (not an animal, body part, plant...),
+# found by reading the shipped packs. Kept out so a regenerated pack doesn't bring them back.
+HANGMAN_BLOCK |= set("""affinity agent algae arbor baba bacteria blade body bulb canal cannabis cavity cereal chassis chess chew cisco clocks coca cola corona crust cuisine current dell dent dietary duct edible electron elements energy erica feeder fetus fist flesh foam fortune fragment fungus gene globe gluten gravity haircut hind hormone hull humans insulin kernel ling mankind marcel meal medic mustang neutron nucleus nutshell organ organs parasite pathway plaque plasma pollen popcorn poultry proton rebirth receptor response ribbon serum slater socket spectrum spirits sticker stigma sweat thrift torque traction trough trunk tuna turf vale valve vessel vintage viola virus voltage wing world""".split())
+# Right word, wrong subject: force the subject instead.
+HANGMAN_FIX = {"beef": "Food"}
 
 
 def hangman_pack(n, rnd, lens, min_zipf):
@@ -280,6 +285,7 @@ def hangman_pack(n, rnd, lens, min_zipf):
         if sum(1 for x in syns if x.pos() != "n") > 1:
             continue
         subject = HANGMAN_SUBJECTS.get(first.lexname()) if first.pos() == "n" else None
+        subject = HANGMAN_FIX.get(w, subject)
         if subject:
             groups.setdefault(subject, []).append({"w": w, "c": subject})
     for g in groups.values():
