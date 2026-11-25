@@ -108,10 +108,11 @@ object Prefs {
         else -> pauseSeconds(c)
     }
 
-    /** The message shown during the pause; falls back to the default when blank. */
+    /** The message shown during the pause: the default until the user saves one, and an
+     *  empty message (nothing shown) when they save it blank. */
     fun phrase(c: Context): String {
-        val saved = sp(c).getString(KEY_PHRASE, null)?.trim()
-        return if (saved.isNullOrEmpty()) DEFAULT_PHRASE else saved
+        val saved = sp(c).getString(KEY_PHRASE, null) ?: return DEFAULT_PHRASE
+        return saved.trim()
     }
 
     fun setPhrase(c: Context, phrase: String) {

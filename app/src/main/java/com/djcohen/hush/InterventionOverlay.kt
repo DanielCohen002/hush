@@ -434,7 +434,7 @@ class InterventionOverlay(
         }
         binding.puzzleView.visibility = if (puzzleShown) View.VISIBLE else View.GONE
         binding.breathFrame.visibility = if (puzzleShown) View.GONE else View.VISIBLE
-        binding.breatheText.visibility = if (puzzleShown) View.GONE else View.VISIBLE
+        binding.breatheText.visibility = if (puzzleShown || phrase.isBlank()) View.GONE else View.VISIBLE
         if (puzzleShown) binding.phaseText.visibility = View.GONE
         updateCornerTimer()
         if (puzzleShown) fitPuzzle()
